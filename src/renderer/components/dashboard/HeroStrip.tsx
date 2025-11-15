@@ -4,7 +4,6 @@ import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import { Card } from '../ui';
-import { Button } from '../ui/Button';
 
 /**
  * 🔥 개선된 HeroStrip: 최근 사용 + 추천 템플릿
@@ -16,7 +15,9 @@ const HERO_STYLES = {
   section: 'flex flex-col gap-3',
   sectionHeader: 'flex items-center justify-between px-1',
   sectionTitle: 'text-sm font-semibold text-foreground flex items-center gap-2',
-  actionButton: 'text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1',
+  actionButton: 'text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 px-2 py-1 hover:bg-foreground/5 rounded-md',
+  viewAllButton: 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-200 group',
+  viewAllIcon: 'w-3 h-3 group-hover:translate-x-0.5 transition-transform',
   strip: 'flex gap-3 overflow-x-auto py-2 px-1 pb-2 snap-x scrollbar-hide',
   card: 'snap-start w-56 min-w-[14rem] h-28 rounded-lg overflow-hidden flex-shrink-0 bg-[hsl(var(--card-bg))] border border-[hsl(var(--card-border))] shadow-sm hover:shadow-md hover:border-foreground/20 transition-all duration-200 cursor-pointer group',
   imageWrap: 'w-28 h-full bg-gradient-to-br from-[hsl(var(--accent-primary))]/20 to-[hsl(var(--accent-dark))]/20 flex-shrink-0 flex items-center justify-center',
@@ -131,9 +132,7 @@ function HeroCard({
 
         <div className={HERO_STYLES.cardMeta}>
           <span className={HERO_STYLES.cardDate}>{item.date}</span>
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             className={HERO_STYLES.startButton}
             onClick={(e) => {
               e.stopPropagation();
@@ -142,7 +141,7 @@ function HeroCard({
             aria-label={`${item.title} 시작`}
           >
             시작
-          </Button>
+          </button>
         </div>
       </div>
     </article>
@@ -182,15 +181,14 @@ export function HeroStrip({
               <BookOpen className="w-4 h-4" aria-hidden="true" />
               최근 작업
             </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={HERO_STYLES.actionButton}
+            <button
               onClick={() => navigate('/recents')}
+              className={HERO_STYLES.viewAllButton}
+              aria-label="모든 최근 작업 보기"
             >
-              모두보기
-              <ChevronRight className="w-3 h-3" aria-hidden="true" />
-            </Button>
+              <span className="text-xs font-medium">모두보기</span>
+              <ChevronRight className={HERO_STYLES.viewAllIcon} aria-hidden="true" />
+            </button>
           </div>
           <div className={HERO_STYLES.strip} data-testid="hero-recent">
             {recent.map(item => (
@@ -212,15 +210,14 @@ export function HeroStrip({
             <BookOpen className="w-4 h-4" aria-hidden="true" />
             추천 템플릿
           </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={HERO_STYLES.actionButton}
+          <button
             onClick={() => navigate('/templates')}
+            className={HERO_STYLES.viewAllButton}
+            aria-label="모든 추천 템플릿 보기"
           >
-            더보기
-            <ChevronRight className="w-3 h-3" aria-hidden="true" />
-          </Button>
+            <span className="text-xs font-medium">모두보기</span>
+            <ChevronRight className={HERO_STYLES.viewAllIcon} aria-hidden="true" />
+          </button>
         </div>
         <div className={HERO_STYLES.strip} data-testid="hero-templates">
           {templates.map(item => (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { Download, BookOpen, HelpCircle } from 'lucide-react';
+import { Download, Folder, HelpCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Logger } from '../../../shared/logger';
 
@@ -78,12 +78,15 @@ export function DashboardActions({
         <Button
           variant="outline"
           className={ACTION_STYLES.actionButton}
-          onClick={() => Logger.info('DASHBOARD_ACTIONS', 'Templates clicked')}
-          aria-label="더 많은 템플릿 보기"
-          title="다양한 템플릿 라이브러리를 둘러봅니다"
+          onClick={() => {
+            Logger.info('DASHBOARD_ACTIONS', 'All projects clicked');
+            window.location.href = '/projects';
+          }}
+          aria-label="모든 작품 보기"
+          title="내 모든 작품을 조회합니다"
         >
-          <BookOpen className={ACTION_STYLES.icon} aria-hidden="true" />
-          <span className="text-sm font-medium">템플릿 라이브러리</span>
+          <Folder className={ACTION_STYLES.icon} aria-hidden="true" />
+          <span className="text-sm font-medium">모든 작품</span>
         </Button>
       </div>
     </div>

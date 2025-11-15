@@ -68,14 +68,15 @@ function getRandomQuote(): Quote {
 }
 
 /**
- * 명언 컴포넌트
+ * 명언 컴포넌트 - 시맨틱, 미니멀 디자인
+ * 2025 현대적 대시보드 스타일
  */
+
 const QUOTE_STYLES = {
-  container: 'w-full flex flex-col gap-3 py-4 px-1',
-  quoteBox: 'rounded-lg border border-[hsl(var(--border))]/30 bg-gradient-to-br from-[hsl(var(--accent-primary))]/5 to-[hsl(var(--accent-dark))]/5 p-4 backdrop-blur-sm',
-  quoteText: 'text-sm font-medium italic text-foreground leading-relaxed',
-  quoteAuthor: 'text-xs text-muted-foreground mt-2 flex items-start gap-1 before:content-["—"]',
-  quoteSource: 'text-[0.65rem] text-muted-foreground/60 ml-0',
+  container: 'w-full py-2',
+  blockquote: 'border-l-2 border-[hsl(var(--accent-primary))]/40 pl-4 py-1 space-y-1.5',
+  quoteText: 'text-sm leading-relaxed italic text-foreground/80',
+  quoteAuthor: 'text-xs text-muted-foreground/70',
 } as const;
 
 export interface AuthorQuoteProps {
@@ -87,17 +88,13 @@ export function AuthorQuote({ quote }: AuthorQuoteProps): React.ReactElement {
 
   return (
     <div className={QUOTE_STYLES.container} role="region" aria-label="작가 영감 명언">
-      <div className={QUOTE_STYLES.quoteBox}>
+      <blockquote className={QUOTE_STYLES.blockquote}>
         <p className={QUOTE_STYLES.quoteText}>"{displayQuote.text}"</p>
-        <p className={QUOTE_STYLES.quoteAuthor}>
-          <span>{displayQuote.author}</span>
-        </p>
-        {displayQuote.source && (
-          <p className={QUOTE_STYLES.quoteSource}>
-            — {displayQuote.source}
-          </p>
-        )}
-      </div>
+        <footer className={QUOTE_STYLES.quoteAuthor}>
+          — {displayQuote.author}
+          {displayQuote.source && ` · ${displayQuote.source}`}
+        </footer>
+      </blockquote>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { RecentEdits } from './RecentEdits';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { Logger } from '../../../shared/logger';
 import { useGuidedTour } from '../../modules/tutorial';
+import { filterRecentEditsBy3Days } from './utils/filterRecentEdits';
 
 /**
  * 🔥 단순화된 대시보드
@@ -21,9 +22,9 @@ const DASHBOARD_STYLES = {
   container: 'flex-1 flex flex-col min-h-screen relative overflow-hidden',
   backgroundLayer: 'dashboard-background-layer',
   contentWrapper: 'relative z-10 flex flex-col flex-1 overflow-y-auto',
-  header: 'dashboard-header-glass px-6 py-4 flex-shrink-0 border-b border-[hsl(var(--border))]/10',
+  header: 'dashboard-header-glass px-6 py-6 flex-shrink-0 border-b border-[hsl(var(--border))]/10',
   headerContent: 'max-w-7xl mx-auto flex items-center justify-between gap-6 w-full',
-  headerTitle: 'text-xl font-semibold text-foreground',
+  headerTitle: 'text-3xl font-bold text-foreground',
   content: 'flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full flex flex-col gap-8',
 } as const;
 
@@ -158,7 +159,7 @@ export function DashboardMain(): React.ReactElement {
           {/* 3. RecentEdits: 그리드/리스트 토글 */}
           <section role="region" aria-label="최근 편집">
             <RecentEdits
-              items={recentFiles.map((f) => ({
+              items={filterRecentEditsBy3Days(recentFiles).map((f) => ({
                 id: f.id,
                 name: f.name,
                 date: f.time,

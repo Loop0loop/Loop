@@ -11,6 +11,7 @@ import Projects from './routes/Projects';
 import ProjectDetail from './routes/ProjectDetail';
 import Settings from './routes/Settings';
 import AI from './routes/AI';
+import Templates from './routes/Templates';
 import OAuthCallback from './routes/OAuthCallback';
 import NotFound from './routes/NotFound';
 import { UpdateNotification } from '../components/common/UpdateNotification';
@@ -121,6 +122,7 @@ function AppContentInner(): React.ReactElement {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/templates" element={<Templates />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/ai" element={<AI />} />
           
