@@ -29,6 +29,7 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
 
     // 프로젝트 페이지 확인
     const isProjectPage = pathname.startsWith('/projects/');
+    const isDashboardPage = pathname === '/' || pathname === '/dashboard';
 
     // restore sidebar state before paint
     useLayoutEffect(() => {
@@ -91,6 +92,14 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
         }
     };
 
+    useEffect(() => {
+        if (isDashboardPage && sidebarCollapsed) {
+            setSidebarCollapsed(false);
+        }
+    }, [isDashboardPage, sidebarCollapsed]);
+
+    const effectiveCollapsed = isDashboardPage ? false : sidebarCollapsed;
+
     return (
         <div className="min-h-screen flex min-w-0 app-root">
             {!isFocusMode && !isProjectPage && (
@@ -98,7 +107,7 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
                     <AppSidebar
                         activeRoute={pathname}
                         onNavigate={handleNavigate}
-                        collapsed={sidebarCollapsed}
+                        collapsed={effectiveCollapsed}
                         onToggleCollapse={handleToggleSidebar}
                     />
                 </aside>
