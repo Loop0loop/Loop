@@ -20,25 +20,25 @@ import { Badge } from '../ui/Badge';
 import { Tooltip } from '../ui/Tooltip';
 import { Logger } from '../../../shared/logger';
 
-// 🔥 기가차드 규칙: 프리컴파일된 스타일 상수
+// 🔥 기가차드 규칙: 프리컴파일된 스타일 상수 (웹 조사 기반 향상)
 const PROJECT_CARD_STYLES = {
-  container: 'group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 min-h-[260px] flex flex-col',
-  header: 'flex items-start justify-between p-4 pb-3',
-  title: 'text-lg font-semibold text-foreground line-clamp-2 flex-1 mr-3 leading-relaxed',
-  moreButton: 'opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-8 h-8 p-0',
-  content: 'px-4 pb-3 flex-1 space-y-3',
-  description: 'text-sm text-muted-foreground line-clamp-3 leading-relaxed',
-  metaSection: 'flex items-center gap-4 text-xs text-muted-foreground',
+  container: 'group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 min-h-[280px] flex flex-col border border-foreground/10 hover:border-foreground/20 rounded-lg',
+  header: 'flex items-start justify-between p-5 pb-4 border-b border-foreground/5',
+  title: 'text-lg font-bold text-foreground line-clamp-2 flex-1 mr-3 leading-tight',
+  moreButton: 'opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-8 h-8 p-0 text-foreground/60 hover:text-foreground',
+  content: 'px-5 py-3 flex-1 space-y-3.5',
+  description: 'text-sm text-foreground/70 line-clamp-2 leading-relaxed',
+  metaSection: 'flex items-center gap-3 text-xs text-foreground/60 flex-wrap',
   metaItem: 'flex items-center gap-1.5',
-  progressSection: 'space-y-2',
+  progressSection: 'space-y-2.5 mt-1',
   progressHeader: 'flex items-center justify-between',
-  progressLabel: 'text-sm font-medium text-foreground/90',
-  progressValue: 'text-sm text-muted-foreground',
-  footer: 'px-4 pb-4 pt-2',
+  progressLabel: 'text-xs font-semibold text-foreground/80 uppercase tracking-wide',
+  progressValue: 'text-sm font-semibold text-foreground/90',
+  footer: 'px-5 pb-4 pt-3 border-t border-foreground/5',
   actionButtons: 'flex items-center gap-2',
-  actionButton: 'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-  statusBadge: 'flex items-center gap-2',
-  icon: 'w-4 h-4', // 🔥 아이콘 크기 확대: 3→4
+  actionButton: 'opacity-60 group-hover:opacity-100 transition-all duration-200 hover:bg-foreground/10',
+  statusBadge: 'flex items-center gap-2 flex-wrap',
+  icon: 'w-4 h-4',
 } as const;
 
 // 🔥 기가차드 규칙: 명시적 타입 정의
@@ -164,6 +164,12 @@ export function ProjectCard({
       case 'draft': return '초안';
       default: return '알 수 없음';
     }
+  };
+
+  const getProgressColor = (progress: number): 'green' | 'blue' | 'orange' => {
+    if (progress >= 100) return 'green';
+    if (progress >= 50) return 'blue';
+    return 'orange';
   };
 
   const formatDate = (date: Date): string => {
@@ -310,7 +316,7 @@ export function ProjectCard({
           <ProgressBar
             value={project.progress}
             size="sm"
-            color={project.progress >= 100 ? 'green' : 'blue'}
+            color={getProgressColor(project.progress)}
             aria-label={`프로젝트 진행률 ${Math.round(project.progress)}%`}
           />
         </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { ProjectGrid } from '../../components/projects/ProjectGrid';
 import { ProjectCreator, type ProjectCreationData } from '../../components/projects/ProjectCreator';
 import { ProjectEditorModal } from '../../components/projects/ProjectEditorModal';
@@ -427,6 +428,19 @@ function ProjectsPageContent(): React.ReactElement {
 
   return (
     <div className={PROJECTS_PAGE_STYLES.container} data-tour="projects-container">
+      {/* 🔥 프로젝트 페이지 헤더 */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-foreground">나의 소설</h1>
+        <button
+          onClick={() => setShowCreator(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[color:var(--accent-primary)] hover:bg-[color:var(--accent-hover)] text-[color:var(--text-inverse,#ffffff)] transition-colors font-medium"
+          aria-label="새 프로젝트 생성"
+        >
+          <Plus className="w-5 h-5" />
+          새 프로젝트
+        </button>
+      </div>
+
       {/* 🔥 프로젝트 생성 다이얼로그 - 항상 렌더링 (isOpen으로만 제어) */}
       {/* 조건부 렌더링 제거 → element 검색 시 항상 찾을 수 있음 */}
       <ProjectCreator
@@ -474,16 +488,6 @@ function ProjectsPageContent(): React.ReactElement {
       {/* 🔥 프로젝트 그리드 */}
       <ProjectGrid
         projects={projects}
-        onCreateProject={() => {
-          // 🔥 수동으로 "새 프로젝트" 버튼 클릭 시 튜토리얼 비활성화
-          // ⚠️ CRITICAL: 즉시 TutorialContext 상태를 비활성화 해야 함
-          // 그렇지 않으면 useGuidedTour 훅이 project-creator를 복구하기 전에
-          // 이미 setShowCreator(true)로 인한 리렌더링이 시작됨
-          closeTutorial();
-          setShowCreator(true);
-        }}
-        onImportFromFile={handleImportFromFile}
-        onImportFromGoogleDocs={handleImportFromGoogleDocs}
         onEditProject={(project: ProjectData) => setEditingProject(project)}
         onDeleteProject={handleDeleteProject}
         onViewProject={handleSelectProject}
