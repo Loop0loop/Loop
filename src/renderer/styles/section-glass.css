@@ -1,0 +1,78 @@
+/**
+ * 🎨 섹션 & 카드 스타일 - Frosted Glass 효과
+ * CSS 변수 기반으로 Light/Dark 모드 자동 전환
+ */
+
+/* ─────────────────────────────────────────── */
+/* 📌 Dark 모드 섹션 (기본) */
+/* ─────────────────────────────────────────── */
+.section-glass-dark {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(30px) brightness(1.1);
+  -webkit-backdrop-filter: blur(30px) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ─────────────────────────────────────────── */
+/* 🔆 Light 모드 섹션 */
+/* ─────────────────────────────────────────── */
+.theme-light .section-glass-light {
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(30px) brightness(0.9);
+  -webkit-backdrop-filter: blur(30px) brightness(0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ─────────────────────────────────────────── */
+/* 📄 기본 카드 스타일 (모든 페이지) */
+/* ─────────────────────────────────────────── */
+.card-glass {
+  background: rgba(var(--card-glass-bg), 0.5);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(var(--card-glass-border), 0.08);
+  border-radius: 0.5rem;
+}
+
+/* ─────────────────────────────────────────── */
+/* 🎯 프로젝트 아이템 스타일 */
+/* ─────────────────────────────────────────── */
+.project-item-glass {
+  background: rgba(var(--project-item-bg), 0.03);
+  border: 1px solid rgba(var(--project-item-border), 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 200ms ease-in-out;
+}
+
+.project-item-glass:hover {
+  background: rgba(var(--project-item-bg), 0.04);
+  border-color: rgba(var(--project-item-border), 0.12);
+}
+
+/* ─────────────────────────────────────────── */
+/* � 대시보드 헤더 스타일 */
+/* ─────────────────────────────────────────── */
+.dashboard-header-glass {
+  background: rgba(var(--header-bg), var(--header-opacity));
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(var(--header-border), var(--header-border-opacity));
+  transition: all 200ms ease-in-out;
+}
+
+/* ─────────────────────────────────────────── */
+/* �💫 대시보드 배경 레이어 */
+/* ─────────────────────────────────────────── */
+.dashboard-background-layer {
+  background-image: url('/assets/background/dark.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  filter: blur(40px);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}

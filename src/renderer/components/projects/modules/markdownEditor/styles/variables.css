@@ -1,0 +1,38 @@
+/* 🎨 MarkdownEditor CSS Variables - 테마 시스템 */
+
+:root {
+  /* 🔥 작가 친화적 색상 팔레트 */
+  --editor-bg: hsl(var(--card));
+  --editor-bg-secondary: hsl(var(--muted));
+  --editor-text: hsl(var(--foreground));
+  --editor-text-muted: hsl(var(--muted-foreground));
+  --editor-text-light: hsl(var(--muted-foreground));
+  --editor-border: hsl(var(--border));
+  --editor-accent: var(--accent-primary);
+  --editor-accent-light: var(--accent-light);
+
+  /* 🔥 헤딩 구분선 색상 */
+  --heading-border-h1: hsl(var(--border) / 0.55);
+  --heading-border-h2: hsl(var(--border) / 0.35);
+
+  /* 🔥 폰트 시스템 변수 */
+  --app-font-family: var(--app-font-family, system-ui, sans-serif);
+  --editor-font-family: var(--editor-font-family, var(--app-font-family, system-ui, sans-serif));
+  --app-font-size: 14px;
+}
+
+/* 🌙 다크 모드 색상 */
+[data-theme="dark"] {
+  --editor-bg: hsl(var(--card));
+  --editor-bg-secondary: hsl(var(--muted));
+  --editor-text: hsl(var(--foreground));
+  --editor-text-muted: hsl(var(--muted-foreground));
+  --editor-text-light: hsl(var(--muted-foreground));
+  --editor-border: hsl(var(--border));
+  --editor-accent: var(--accent-primary);
+  --editor-accent-light: var(--accent-light);
+
+  /* 🔥 다크 모드 헤딩 구분선 */
+  --heading-border-h1: hsl(var(--border) / 0.48);
+  --heading-border-h2: hsl(var(--border) / 0.28);
+}

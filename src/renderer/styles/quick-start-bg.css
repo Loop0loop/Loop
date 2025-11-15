@@ -1,0 +1,23 @@
+/**
+ * 🎨 Quick Start Card 배경 이미지 스타일
+ * Electron 환경에서 public 폴더 접근을 위한 CSS
+ */
+
+@media (prefers-color-scheme: dark) {
+  .quick-start-background {
+    background-image: url('file:///<%= assetPath %>');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .quick-start-background {
+    background-image: url('file:///<%= assetPath %>');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    opacity: 0.9;
+  }
+}

@@ -1,0 +1,127 @@
+'use client';
+
+import React, { ReactNode, useState, useLayoutEffect, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AppSidebar } from '../components/layout/AppSidebar';
+// AppHeader 제거됨 - DashboardMain에서 자체 헤더로 관리
+// MonitoringProvider 제거됨 - 기획 변경으로 불필요
+import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../providers/ThemeProvider';
+import { useSettings } from './settings/hooks/useSettings';
+import { Logger } from '../../shared/logger';
+import '../styles/index.css';
+
+interface ClientLayoutProps {
+    readonly children: ReactNode;
+    readonly initialAuth?: any;
+}
+
+function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactElement {
+    const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+    const [isClientMounted, setIsClientMounted] = useState<boolean>(false);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const pathname = location.pathname;
+    const { settings } = useSettings();
+
+    // Focus 모드 상태
+    const isFocusMode = settings?.ui?.focusMode ?? false;
+
+    // 프로젝트 페이지 확인
+    const isProjectPage = pathname.startsWith('/projects/');
+
+    // restore sidebar state before paint
+    useLayoutEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedState = localStorage.getItem('sidebar-collapsed');
+                if (savedState === 'true') {
+                    setSidebarCollapsed(true);
+                }
+                Logger.debug('LAYOUT', 'Sidebar state restored immediately', { collapsed: savedState === 'true' });
+            } catch (error) {
+                Logger.error('LAYOUT', 'Failed to restore sidebar state', error);
+            }
+        }
+        setIsClientMounted(true);
+    }, []);
+
+    const handleNavigate = (href: string): void => {
+        try {
+            if (typeof window === 'undefined') return;
+
+            // Parse the URL to validate it
+            let url: URL | null = null;
+            try {
+                url = new URL(href, window.location.href);
+            } catch (e) {
+                // malformed URL - block navigation
+                Logger.warn('LAYOUT', 'Blocked malformed navigation URL', { href });
+                return;
+            }
+
+            const isSameOrigin = url.origin === window.location.origin;
+            const isRelative = href.startsWith('/');
+
+            if (isRelative || isSameOrigin) {
+                // Use Next.js router for internal navigation (client-side routing)
+                Logger.debug('LAYOUT', 'Client-side navigation', { href });
+                navigate(href);
+            } else {
+                // treat as external - open in new tab/window safely
+                Logger.debug('LAYOUT', 'External navigation', { href });
+                window.open(url.toString(), '_blank', 'noopener,noreferrer');
+            }
+        } catch (e) {
+            Logger.warn('LAYOUT', 'Blocked unsafe navigation attempt', { href, error: e });
+        }
+    };
+
+    const handleToggleSidebar = (): void => {
+        const newState = !sidebarCollapsed;
+        setSidebarCollapsed(newState);
+
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('sidebar-collapsed', newState.toString());
+                Logger.debug('LAYOUT', 'Sidebar state saved', { collapsed: newState });
+            } catch (error) {
+                Logger.error('LAYOUT', 'Failed to save sidebar state', error);
+            }
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex min-w-0 app-root">
+            {!isFocusMode && !isProjectPage && (
+                <aside className="flex-shrink-0">
+                    <AppSidebar
+                        activeRoute={pathname}
+                        onNavigate={handleNavigate}
+                        collapsed={sidebarCollapsed}
+                        onToggleCollapse={handleToggleSidebar}
+                    />
+                </aside>
+            )}
+
+            <main className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 min-w-0 p-0 overflow-y-auto">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default function ClientLayout({ children, initialAuth }: ClientLayoutProps): React.ReactElement {
+    return (
+        <ThemeProvider defaultTheme="system">
+            <AuthProvider initialAuth={initialAuth}>
+                {/* MonitoringProvider 제거됨 - 기획 변경으로 불필요 */}
+                <ClientLayoutInner>
+                    {children}
+                </ClientLayoutInner>
+            </AuthProvider>
+        </ThemeProvider>
+    );
+}

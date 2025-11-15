@@ -1,0 +1,779 @@
+/* 🔥 기가차드 컴포넌트 스타일 시스템 */
+
+/* 🔥 Discord 스타일 슬라이더 */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+  background: #e2e8f0;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #3b82f6;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-track {
+  background: #e2e8f0;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+
+  background: #3b82f6;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Dark mode slider styles */
+.dark .slider::-webkit-slider-track {
+  background: #475569;
+}
+
+.dark .slider::-webkit-slider-thumb {
+  border-color: #1e293b;
+}
+
+.dark .slider::-moz-range-track {
+  background: #475569;
+}
+
+.dark .slider::-moz-range-thumb {
+  border-color: #1e293b;
+}
+
+
+/* 🔥 Button 리셋 및 커스텀 스타일 */
+button {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 🔥 Input 리셋 및 커스텀 스타일 */
+input, textarea {
+  font-family: inherit;
+  outline: none;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+input:focus, textarea:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+/* 🔥 Link 리셋 및 커스텀 스타일 */
+a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: hsl(var(--primary) / 0.8);
+  text-decoration: underline;
+}
+
+/* 🔥 Heading 스타일링 */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+}
+
+/* 🔥 작가 친화적 Typography 클래스 */
+.prose {
+  font-family: var(--font-writing);
+  line-height: var(--leading-relaxed);
+  color: hsl(var(--foreground));
+}
+
+.prose h1 { font-size: 2.25rem; margin-bottom: 1rem; }
+.prose h2 { font-size: 1.875rem; margin-bottom: 0.875rem; }
+.prose h3 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+.prose h4 { font-size: 1.25rem; margin-bottom: 0.625rem; }
+
+.prose p {
+  margin-bottom: 1rem;
+  line-height: var(--leading-relaxed);
+}
+
+.prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  background: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  font-family: var(--font-mono);
+  background: hsl(var(--muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+/* 🔥 Card 컴포넌트 스타일 */
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 🔥 Badge 컴포넌트 스타일 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.badge-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.badge-success {
+  background: var(--success);
+  color: white;
+}
+
+.badge-warning {
+  background: var(--warning);
+  color: white;
+}
+
+.badge-error {
+  background: var(--error);
+  color: white;
+}
+
+/* 🔥 Alert 컴포넌트 스타일 */
+.alert {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  margin: 1rem 0;
+}
+
+.alert-info {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+}
+
+.alert-success {
+  background: var(--success-light);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.alert-warning {
+  background: var(--warning-light);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.alert-error {
+  background: var(--error-light);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+/* 🔥 Avatar 컴포넌트 스타일 */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.avatar-sm { width: 2rem; height: 2rem; font-size: 0.75rem; }
+.avatar-md { width: 2.5rem; height: 2.5rem; font-size: 0.875rem; }
+.avatar-lg { width: 3rem; height: 3rem; font-size: 1rem; }
+
+/* 🔥 Separator 컴포넌트 스타일 */
+.separator {
+  border: none;
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 1rem 0;
+}
+
+.separator-vertical {
+  width: 1px;
+  height: auto;
+  margin: 0 1rem;
+}
+
+/* 🔥 Skeleton 로딩 애니메이션 */
+.skeleton {
+  background: hsl(var(--muted));
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 🔥 Tooltip 스타일 */
+.tooltip {
+  position: relative;
+  z-index: var(--z-tooltip);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid hsl(var(--border));
+}
+
+/* 🔥 Progress Bar 스타일 */
+.progress {
+  width: 100%;
+  height: 0.5rem;
+  background: hsl(var(--secondary));
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+/* 🔥 Switch/Toggle 스타일 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: hsl(var(--muted));
+  transition: 0.4s;
+  border-radius: 1.5rem;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.25rem;
+  width: 1.25rem;
+  left: 0.125rem;
+  bottom: 0.125rem;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .switch-slider {
+  background-color: hsl(var(--primary));
+}
+
+.switch input:checked + .switch-slider:before {
+  transform: translateX(1.25rem);
+}
+
+/* 🔥 Checkbox 스타일 */
+.checkbox {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  cursor: pointer;
+  position: relative;
+}
+
+.checkbox:checked {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: hsl(var(--primary-foreground));
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* 🔥 Radio Button 스타일 */
+.radio {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  background: hsl(var(--background));
+  cursor: pointer;
+  position: relative;
+}
+
+.radio:checked {
+  border-color: hsl(var(--primary));
+}
+
+.radio:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.375rem;
+  height: 0.375rem;
+  background: hsl(var(--primary));
+  border-radius: 50%;
+}
+
+/* ===== 🚨 누락된 핵심 레이아웃 CSS 복구 ===== */
+
+/* 🔥 앱 루트 레이아웃 - 오버플로우 관리 */
+.app-root {
+  width: 100%;
+  overflow-x: hidden;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  opacity: 1;
+  visibility: visible;
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* Make sure any flex children can shrink properly */
+.app-root * {
+  min-width: 0;
+}
+
+/* Images and media should not overflow */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Break long words and preserve content within containers */
+.break-words,
+.prose,
+.text-content {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Tooltips/popovers must be position-aware and not affect layout */
+.tooltip,
+.popover {
+  position: absolute;
+  max-width: 80vw;
+  white-space: normal;
+}
+
+/* 🔥 Focus Mode 스타일 - 사이드바/헤더/메인 관리 */
+.focus-mode {
+  background: var(--bg-primary);
+}
+
+.focus-mode .sidebar {
+  display: none;
+}
+
+.focus-mode .header {
+  opacity: 0.3;
+}
+
+.focus-mode .main-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 독서 모드 */
+.reading-mode {
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+}
+
+/* 접근성 개선 - 포커스 가시성 */
+.focusable:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* 페이지 전환 중 깜빡임 방지 */
+.page-transition {
+  position: relative;
+}
+
+.page-transition::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+}
+
+/* 컨텐츠 영역 레이아웃 안정성 */
+main {
+  min-height: 100vh;
+  contain: layout style paint;
+  transition: opacity 0.15s ease-in-out;
+  min-height: calc(100vh - 4rem);
+  scroll-behavior: smooth;
+}
+
+/* 사이드바 전환 최적화 */
+aside {
+  transform: translateZ(0);
+  will-change: width;
+  transition: width 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* 헤더 안정성 */
+header {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* 🔥 Driver.js Popover 전체 스타일 (공식 클래스명 호환) */
+.driver-popover {
+  position: fixed !important;
+  inset: auto auto;
+  display: flex !important;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: min(26rem, 90vw);
+  max-width: min(28rem, 92vw);
+  padding: 1.75rem;
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.25),
+    0 8px 24px rgba(15, 23, 42, 0.18);
+  font-family: var(--font-family, 'Inter'), ui-sans-serif, system-ui, -apple-system !important;
+  z-index: 1000000000;
+  transition:
+    top 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease;
+  transform: translate3d(0, 0, 0);
+  backdrop-filter: blur(10px);
+  background-clip: padding-box;
+  --loop-btn-bg: hsl(var(--accent-primary, var(--primary)) / 1);
+  --loop-btn-text: hsl(var(--accent-foreground, var(--primary-foreground, var(--foreground))) / 1);
+  --loop-btn-hover: hsl(var(--accent-primary, var(--primary)) / 0.92);
+}
+
+.driver-popover[data-loop-popover-side='top'] {
+  transform-origin: bottom center;
+  animation: driver-popover-emerge 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.driver-popover[data-loop-popover-side='bottom'] {
+  transform-origin: top center;
+  animation: driver-popover-emerge 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes driver-popover-emerge {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.driver-popover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.driver-popover .driver-popover-title {
+  font-size: clamp(1.125rem, 1.05rem + 0.3vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: inherit;
+}
+
+.driver-popover .driver-popover-description {
+  color: hsl(var(--muted-foreground));
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.driver-popover .driver-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.driver-popover .driver-popover-progress-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+
+.driver-popover .driver-popover-close-btn {
+  all: unset;
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 0.5rem !important;
+  color: hsl(var(--muted-foreground)) !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease, background-color 0.2s ease !important;
+  font-size: 1.5rem !important;
+  font-weight: 300 !important;
+  line-height: 1 !important;
+}
+
+.driver-popover .driver-popover-close-btn:hover,
+.driver-popover .driver-popover-close-btn:focus-visible {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--muted) / 0.4) !important;
+  outline: none !important;
+}
+
+.driver-popover button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  min-width: 5.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 0.75rem;
+  background-color: var(--loop-btn-bg);
+  color: var(--loop-btn-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.driver-popover button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background-color: var(--loop-btn-hover);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+}
+
+.driver-popover button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.16);
+}
+
+.driver-popover button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.driver-popover button:focus-visible {
+  outline: 2px solid var(--loop-btn-bg);
+  outline-offset: 2px;
+}
+
+.driver-popover .driver-popover-navigation-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.driver-popover .driver-popover-arrow {
+  border-color: transparent;
+}
+
+.driver-popover .driver-popover-arrow-side-top {
+  border-bottom-color: hsl(var(--card));
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
+}
+
+.driver-popover .driver-popover-arrow-side-bottom {
+  border-top-color: hsl(var(--card));
+  box-shadow: 0 -8px 16px rgba(15, 23, 42, 0.12);
+}
+
+.driver-popover .driver-popover-arrow-side-left {
+  border-right-color: hsl(var(--card));
+}
+
+.driver-popover .driver-popover-arrow-side-right {
+  border-left-color: hsl(var(--card));
+}
+
+.loop-driver-popover--slide {
+  animation: loop-popover-slide 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes loop-popover-slide {
+  from {
+    opacity: 0.85;
+    transform: translate3d(var(--loop-slide-dx, 0px), var(--loop-slide-dy, 0px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .driver-popover {
+    width: min(22rem, 94vw);
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .driver-popover .driver-popover-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .driver-popover button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .driver-popover {
+    width: min(20rem, 96vw);
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+
+  .driver-popover .driver-popover-title {
+    font-size: 1.05rem;
+  }
+
+  .driver-popover .driver-popover-description {
+    font-size: 0.9rem;
+  }
+
+  .driver-popover .driver-popover-close-btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.25rem;
+  }
+}
+
+/* 🔥 Spotlight 배경 효과 - 튜토리얼 활성 시 배경 섹션 강조 */
+[data-tour="quick-start-card"].driver-highlighted,
+[data-tour="active-projects-section"].driver-highlighted,
+[data-tour="recent-files-section"].driver-highlighted {
+  position: relative;
+  z-index: 999999998; /* Popover 바로 아래 */
+}

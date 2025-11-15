@@ -1,0 +1,196 @@
+/**
+ * ⚡ High Contrast Theme — accessibility-first color system.
+ *
+ * Goals:
+ * - Maintain WCAG-friendly contrast ratios across surfaces and text.
+ * - Provide explicit focus outlines and readable editor defaults.
+ * - Align with the shared theme token contract.
+ */
+
+[data-theme="high-contrast"] {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 240 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 92%;
+  --muted-foreground: 0 0% 22%;
+  --accent: 0 0% 90%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 38%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 30%;
+  --input: 0 0% 30%;
+  --ring: 240 100% 50%;
+  --radius: 0.5rem;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #e5e5e5;
+
+  --text-primary: #000000;
+  --text-secondary: #1a1a1a;
+  --text-muted: #333333;
+  --text-inverse: #ffffff;
+
+  --accent-primary: #0000ff;
+  --accent-hover: #0000cc;
+  --accent-light: #e6f0ff;
+  --accent-dark: #000080;
+
+  --border-light: #d1d1d1;
+  --border-medium: #9d9d9d;
+  --border-dark: #6c6c6c;
+
+  --success: #007a2f;
+  --success-light: #e6ffe6;
+  --warning: #c96900;
+  --warning-light: #fff0e6;
+  --error: #b80000;
+  --error-light: #ffe6e6;
+
+  --chart-1: 240 100% 50%;
+  --chart-2: 120 92% 36%;
+  --chart-3: 39 100% 52%;
+  --chart-4: 312 96% 45%;
+  --chart-5: 0 100% 40%;
+
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 0 0% 0%;
+  --sidebar-primary: 240 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 95%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 0 0% 30%;
+  --sidebar-ring: 240 100% 50%;
+
+  --editor-bg: #ffffff;
+  --editor-bg-secondary: #f5f5f5;
+  --editor-text: #000000;
+  --editor-text-muted: #333333;
+  --editor-border: #242424;
+  --editor-accent: #0000ff;
+  --editor-accent-light: rgba(0, 0, 255, 0.28);
+  --editor-selection: rgba(0, 0, 255, 0.2);
+
+  /* Toolbar + button surfaces */
+  --toolbar-bg: rgba(0, 0, 0, 0.92);
+  --toolbar-border: rgba(255, 255, 255, 0.6);
+  --toolbar-divider: rgba(255, 255, 255, 0.45);
+  --toolbar-foreground: #ffffff;
+  --toolbar-muted: #d1d1d1;
+  --toolbar-hover-bg: rgba(255, 255, 255, 0.18);
+  --toolbar-shadow: 0 0 0 2px rgba(0, 0, 0, 0.65);
+  --button-active: rgba(0, 0, 255, 0.3);
+  --button-hover: rgba(255, 255, 255, 0.2);
+  --focus-text-shadow: 0 0 12px rgba(0, 0, 0, 0.75);
+
+  --shadow-bold: 0 0 0 2px #000000;
+  --focus-outline: 3px solid #0000ff;
+  --focus-outline-offset: 3px;
+}
+
+html[data-theme="high-contrast"],
+body[data-theme="high-contrast"] {
+  font-feature-settings: "liga" 1, "kern" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body[data-theme="high-contrast"] {
+  background-color: var(--bg-primary, hsl(var(--background)));
+  color: var(--text-primary, hsl(var(--foreground)));
+}
+
+body[data-theme="high-contrast"] .tiptap-editor,
+body[data-theme="high-contrast"] .ProseMirror,
+body[data-theme="high-contrast"] .tiptap {
+  background-color: var(--editor-bg);
+  color: var(--editor-text);
+  border-color: var(--editor-border);
+  box-shadow: var(--shadow-bold);
+}
+
+body[data-theme="high-contrast"] .tiptap-editor:focus,
+body[data-theme="high-contrast"] .ProseMirror:focus {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+body[data-theme="high-contrast"] .tiptap-editor *,
+body[data-theme="high-contrast"] .ProseMirror * {
+  color: inherit;
+}
+
+body[data-theme="high-contrast"] .tiptap-editor .is-editor-empty:first-child::before,
+body[data-theme="high-contrast"] .ProseMirror .is-editor-empty:first-child::before {
+  color: var(--editor-text-muted);
+}
+
+body[data-theme="high-contrast"] .ProseMirror::selection,
+body[data-theme="high-contrast"] .ProseMirror *::selection,
+body[data-theme="high-contrast"] .ProseMirror::-moz-selection,
+body[data-theme="high-contrast"] .ProseMirror *::-moz-selection {
+  background: var(--editor-selection);
+  color: #ffffff;
+}
+
+body[data-theme="high-contrast"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body[data-theme="high-contrast"] ::-webkit-scrollbar-track {
+  background: #d4d4d4;
+}
+
+body[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border: 2px solid #ffffff;
+}
+
+body[data-theme="high-contrast"] ::-webkit-scrollbar-thumb:hover {
+  background: #000000;
+}
+
+body[data-theme="high-contrast"] *:focus {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+body[data-theme="high-contrast"] a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--primary));
+}
+
+body[data-theme="high-contrast"] a:hover {
+  color: #0000cc;
+  background: #e6f0ff;
+}
+
+body[data-theme="high-contrast"] button,
+body[data-theme="high-contrast"] [role="button"] {
+  border: 2px solid #000000;
+  font-weight: 700;
+}
+
+body[data-theme="high-contrast"] input,
+body[data-theme="high-contrast"] textarea,
+body[data-theme="high-contrast"] select,
+body[data-theme="high-contrast"] [contenteditable] {
+  border: 2px solid #000000;
+  background: var(--editor-bg-secondary, hsl(var(--card)));
+  color: inherit;
+}
+
+body.focus-mode[data-theme="high-contrast"] {
+  filter: contrast(1.04);
+}

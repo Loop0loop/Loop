@@ -1,0 +1,71 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+*node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+*Analytics.app/Contents/Frameworks/Electron
+*Analytics.app/Contents/Resources/app.asar.unpacked/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node
+*release
+/release
+/debug-scripts
+/resources
+
+
+
+/dist
+*loop-1.0.0.tgz
+# Allow .github/workflows for CI/CD
+# (removed *.github pattern that was blocking workflows)
+
+# testing
+/coverage
+**.playwright-mcp
+/.playwright-mcp
+
+
+# next.js
+/.next/
+/out/
+*out
+
+**.next
+*.next
+
+
+# production
+# /build  # 주석 처리: NSIS installer 커스터마이징 파일 포함 필요
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+*.env
+**.env
+/.env
+# vercel
+.vercel
+*.env
+**.env
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

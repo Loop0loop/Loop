@@ -1,0 +1,530 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client"
+  // 🔥 명시적 플랫폼 타겟: macOS, Windows 배포용
+  // native 제거 - 빌드 환경 일관성 보장
+  binaryTargets = ["darwin", "darwin-arm64", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        String          @id @default(cuid())
+  username  String          @unique
+  email     String?         @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  projects  Project[]
+  sessions  TypingSession[]
+  settings  UserSettings?
+
+  @@map("users")
+}
+
+model Project {
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  content           String?
+  genre             String             @default("기타")
+  status            String             @default("active")
+  progress          Int                @default(0)
+  wordCount         Int                @default(0)
+  author            String             @default("사용자")
+  platform          String             @default("loop")
+  userId            String?
+  createdAt         DateTime           @default(now())
+  lastModified      DateTime           @updatedAt
+  chapters          String?
+  aiAnalyses        AIAnalysis[]
+  aiEvaluations     AIEvaluation[]
+  aiWorkflows       AIWorkflow[]
+  episodes          Episode[]
+  characters        ProjectCharacter[]
+  notes             ProjectNote[]
+  structure         ProjectStructure[]
+  user              Users?             @relation(fields: [userId], references: [id])
+  publications      Publication[]      @relation("ProjectPublications")
+  writerStats       WriterStats[]
+  geminiChatSessions GeminiChatSession[]
+  writingActivities WritingActivity[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([lastModified])
+  @@map("projects")
+}
+
+model Episode {
+  id                   String    @id @default(cuid())
+  projectId            String
+  episodeNumber        Int
+  title                String
+  content              String
+  wordCount            Int       @default(0)
+  targetWordCount      Int       @default(5500)
+  status               String    @default("draft")
+  act                  String?
+  cliffhangerType      String?
+  cliffhangerIntensity Int?
+  notes                String?
+  platform             String?
+  sortOrder            Int       @default(0)
+  isActive             Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  publishedAt          DateTime?
+  project              Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, episodeNumber])
+  @@index([projectId])
+  @@index([episodeNumber])
+  @@index([status])
+  @@index([act])
+  @@map("episodes")
+}
+
+model ProjectCharacter {
+  id              String   @id @default(cuid())
+  projectId       String
+  name            String
+  role            String
+  description     String?
+  notes           String?
+  appearance      String?
+  personality     String?
+  background      String?
+  goals           String?
+  conflicts       String?
+  avatar          String?
+  color           String   @default("#3b82f6")
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  appearances     Json?
+  firstAppearance Int?
+  speechPattern   String?
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([sortOrder])
+  @@map("project_characters")
+}
+
+model ProjectStructure {
+  id          String             @id @default(cuid())
+  projectId   String
+  type        String
+  title       String
+  description String?
+  content     String?
+  status      String             @default("planned")
+  wordCount   Int                @default(0)
+  sortOrder   Int                @default(0)
+  parentId    String?
+  depth       Int                @default(0)
+  color       String             @default("#6b7280")
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent      ProjectStructure?  @relation("StructureHierarchy", fields: [parentId], references: [id])
+  children    ProjectStructure[] @relation("StructureHierarchy")
+
+  @@index([projectId])
+  @@index([sortOrder])
+  @@index([parentId])
+  @@map("project_structure")
+}
+
+model ProjectNote {
+  id                String   @id @default(cuid())
+  projectId         String
+  title             String
+  content           String
+  type              String   @default("general")
+  tags              Json?
+  color             String   @default("#fbbf24")
+  isPinned          Boolean  @default(false)
+  isArchived        Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  importance        String?
+  introducedEpisode Int?
+  resolvedEpisode   Int?
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([type])
+  @@index([isPinned])
+  @@index([createdAt])
+  @@map("project_notes")
+}
+
+model TypingSession {
+  id          String            @id @default(cuid())
+  userId      String
+  content     String
+  startTime   DateTime
+  endTime     DateTime?
+  keyCount    Int               @default(0)
+  wpm         Float             @default(0)
+  accuracy    Float             @default(0)
+  windowTitle String?
+  appName     String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  keyEvents   KeyEvent[]
+  analytics   SessionAnalytics?
+  user        Users             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([startTime])
+  @@index([wpm])
+  @@map("typing_sessions")
+}
+
+model KeyEvent {
+  id        String        @id @default(cuid())
+  sessionId String
+  key       String
+  keyCode   String
+  timestamp DateTime
+  eventType String
+  createdAt DateTime      @default(now())
+  session   TypingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("key_events")
+}
+
+model SessionAnalytics {
+  id               String        @id @default(cuid())
+  sessionId        String        @unique
+  averageWpm       Float
+  peakWpm          Float
+  errorCount       Int
+  correctionCount  Int
+  rhythmScore      Float
+  consistencyScore Float
+  improvementTips  Json?
+  analysisData     Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  session          TypingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("session_analytics")
+}
+
+model UserSettings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  theme              String   @default("light")
+  language           String   @default("ko")
+  keyboardLayout     String   @default("qwerty")
+  showRealTimeWpm    Boolean  @default(true)
+  enableSounds       Boolean  @default(false)
+  autoSaveInterval   Int      @default(30)
+  privacyMode        Boolean  @default(false)
+  monitoringEnabled  Boolean  @default(true)
+  targetWpm          Int      @default(60)
+  sessionGoalMinutes Int      @default(30)
+  excludedApps       Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  title       String
+  description String
+  threshold   Float
+  earnedAt    DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  @@index([userId])
+  @@index([type])
+  @@map("achievements")
+}
+
+model AppUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  appName      String
+  windowTitle  String?
+  totalTime    Int
+  sessionCount Int      @default(1)
+  avgWpm       Float    @default(0)
+  lastUsed     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, appName])
+  @@index([userId])
+  @@index([appName])
+  @@index([lastUsed])
+  @@map("app_usage")
+}
+
+model DailyGoal {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime
+  targetWpm     Int
+  targetMinutes Int
+  actualWpm     Float    @default(0)
+  actualMinutes Float    @default(0)
+  isCompleted   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("daily_goals")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  category  String
+  results   Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("search_history")
+}
+
+model AIAnalysis {
+  id           String         @id @default(cuid())
+  projectId    String
+  analysisType String
+  inputData    String
+  prompt       String
+  response     String
+  metadata     Json?
+  confidence   Float?
+  status       String         @default("completed")
+  error        String?
+  version      String         @default("1.0")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evaluations  AIEvaluation[]
+
+  @@index([projectId])
+  @@index([analysisType])
+  @@index([createdAt])
+  @@index([status])
+  @@map("ai_analyses")
+}
+
+model AIWorkflow {
+  id             String           @id @default(cuid())
+  projectId      String
+  workflowName   String
+  configYaml     String
+  status         String           @default("pending")
+  currentStep    String?
+  totalSteps     Int              @default(1)
+  completedSteps Int              @default(0)
+  results        Json?
+  error          String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  steps          AIWorkflowStep[]
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_workflows")
+}
+
+model AIWorkflowStep {
+  id           String     @id @default(cuid())
+  workflowId   String
+  stepName     String
+  stepOrder    Int
+  analysisType String
+  inputData    String?
+  outputData   String?
+  prompt       String?
+  status       String     @default("pending")
+  duration     Int?
+  retryCount   Int        @default(0)
+  error        String?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  workflow     AIWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([stepOrder])
+  @@index([status])
+  @@map("ai_workflow_steps")
+}
+
+model AIEvaluation {
+  id             String      @id @default(cuid())
+  projectId      String
+  analysisId     String?
+  evaluationType String
+  category       String
+  score          Float
+  maxScore       Float       @default(100)
+  criteria       Json
+  feedback       String?
+  suggestions    Json?
+  strengths      Json?
+  weaknesses     Json?
+  version        String      @default("1.0")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  analysis       AIAnalysis? @relation(fields: [analysisId], references: [id])
+
+  @@index([projectId])
+  @@index([evaluationType])
+  @@index([category])
+  @@index([score])
+  @@index([createdAt])
+  @@map("ai_evaluations")
+}
+
+model AIUsageStats {
+  id              String   @id @default(cuid())
+  userId          String?
+  date            DateTime
+  apiProvider     String
+  analysisType    String
+  requestCount    Int      @default(0)
+  tokenUsed       Int      @default(0)
+  cost            Float    @default(0)
+  successCount    Int      @default(0)
+  failureCount    Int      @default(0)
+  avgResponseTime Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([date, userId, apiProvider, analysisType])
+  @@index([date])
+  @@index([userId])
+  @@index([apiProvider])
+  @@map("ai_usage_stats")
+}
+
+model WriterStats {
+  id               String    @id @default(cuid())
+  projectId        String
+  sessionStartTime DateTime
+  sessionEndTime   DateTime?
+  sessionDuration  Int       @default(0)
+  wordCount        Int       @default(0)
+  charCount        Int       @default(0)
+  paragraphCount   Int       @default(0)
+  wpm              Int       @default(0)
+  wordGoal         Int       @default(0)
+  goalAchieved     Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([sessionStartTime])
+  @@index([createdAt])
+  @@map("writer_stats")
+}
+
+enum GeminiChatRole {
+  user
+  assistant
+  system
+}
+
+model GeminiChatSession {
+  id              String               @id @default(cuid())
+  projectId       String
+  title           String?
+  summary         String?
+  metadata        Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  lastInteraction DateTime             @default(now())
+  messages        GeminiChatMessage[]
+  project         Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([lastInteraction])
+  @@map("gemini_chat_sessions")
+}
+
+model GeminiChatMessage {
+  id          String             @id @default(cuid())
+  sessionId   String
+  role        GeminiChatRole
+  content     String
+  tokenUsage  Json?
+  isStreaming Boolean            @default(false)
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  session     GeminiChatSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("gemini_chat_messages")
+}
+
+model Publication {
+  id          String    @id @default(cuid())
+  projectId   String
+  platform    String
+  platformUrl String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String    @default("ongoing")
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation("ProjectPublications", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, platform])
+  @@index([projectId])
+  @@index([platform])
+  @@index([status])
+  @@map("publications")
+}
+
+model WritingActivity {
+  id        String   @id @default(cuid())
+  projectId String
+  date      DateTime
+  wordCount Int      @default(0)
+  duration  Int      @default(0)
+  episodeId String?
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@index([projectId])
+  @@index([date])
+  @@map("writing_activities")
+}

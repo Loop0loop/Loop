@@ -1,0 +1,206 @@
+{
+  "productName": "Loop",
+  "appId": "com.loop.app",
+  "compression": "maximum",
+  "protocols": [
+    {
+      "name": "Loop App",
+      "schemes": [
+        "com.loop.app",
+        "loop"
+      ]
+    }
+  ],
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "out/main/**/*",
+    "!.codacy**",
+    "out/preload/**/*",
+    "out/renderer/**/*",
+    "assets/**/*",
+    "public/assets/fonts/**/*",
+    "!scripts/**/*",
+    "!coverage/**/*",
+    "package.json",
+    "node_modules/highlight.js/styles/**/*.css",
+    "!node_modules/**/*.ts",
+    "!node_modules/**/LICENSE*",
+    "!node_modules/**/*.map",
+    "!node_modules/**/README*",
+    "!node_modules/**/*.md",
+    "!node_modules/**/test/**",
+    "!node_modules/**/tests/**",
+    "!node_modules/**/__tests__/**",
+    "!node_modules/**/.github/**",
+    "!node_modules/**/examples/**",
+    "!node_modules/**/*.d.ts",
+    "!**/**/*.md",
+    "node_modules/@prisma/client/**/*",
+    "node_modules/.prisma/client/**/*"
+    
+  ],
+  "asarUnpack": [
+    "node_modules/keytar/build/**/*.node",
+    "node_modules/electron-updater/node_modules/bufferutil/build/**/*.node"
+  ],
+  "extraResources": [
+    {
+      "from": "node_modules/.prisma",
+      "to": "node_modules/.prisma"
+    },
+    {
+      "from": "node_modules/@prisma",
+      "to": "node_modules/@prisma"
+    },
+    {
+      "from": "prisma/schema.prisma",
+      "to": "prisma/schema.prisma"
+    },
+    {
+      "from": "prisma/loop.db",
+      "to": "prisma/loop.db"
+    },
+    {
+      "from": "public/assets/fonts",
+      "to": "fonts"
+    },
+    {
+      "from": "public/assets",
+      "to": "public/assets"
+    }
+  ],
+  "extraFiles": [],
+  "mac": {
+    "category": "public.app-category.productivity",
+    "icon": "public/assets/icon.icns",
+    "entitlements": "public/assets/entitlements.mac.plist",
+    "entitlementsInherit": "public/assets/entitlements.mac.plist",
+    "gatekeeperAssess": false,
+    "hardenedRuntime": true,
+    "asar": true,
+    "files": [
+      "node_modules/node-mac-permissions/**"
+    ],
+    "target": [
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "zip",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ]
+  },
+  "dmg": {
+    "background": null,
+    "sign": false,
+    "window": {
+      "width": 540,
+      "height": 380
+    },
+    "contents": [
+      {
+        "x": 130,
+        "y": 190,
+        "type": "file"
+      },
+      {
+        "x": 410,
+        "y": 190,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ],
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+  "win": {
+    "icon": "public/assets/icon.ico",
+    "asar": true,
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "nsis-web",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "zip",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "files": [
+      "!node_modules/node-mac-permissions/**"
+    ]
+  },
+  "linux": {
+    "icon": "public/assets/icon.png",
+    "category": "Utility",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "deb",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": true,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Loop",
+    "differentialPackage": true,
+    "installerIcon": "public/assets/icon.ico",
+    "uninstallerIcon": "public/assets/icon.ico",
+    "installerSidebar": "build/installer-sidebar.bmp",
+    "include": "build/installer.nsh",
+    "license": null,
+    "runAfterFinish": true,
+    "deleteAppDataOnUninstall": false
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "maildan",
+    "repo": "loop",
+    "releaseType": "release"
+  },
+  "asar": true
+}
