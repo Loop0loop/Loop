@@ -65,7 +65,7 @@ class PrismaService {
       // 🔥 Prisma 바이너리 경로 디버깅 (Electron asar 관련)
       if (process.env.DEBUG_PRISMA) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
+           
           const fs = require('fs');
           const path = require('path');
           const prismaBinPath = path.join(
@@ -83,7 +83,7 @@ class PrismaService {
 
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('PRISMA_SERVICE', 'Loading Prisma client from @prisma/client');
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+       
       const { PrismaClient } = require('@prisma/client');
 
       this.client = new PrismaClient({

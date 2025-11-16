@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useState, useLayoutEffect, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AppSidebar } from '../components/layout/AppSidebar';
+import { AppSidebar } from '../components/layout/sidebar';
 // AppHeader 제거됨 - DashboardMain에서 자체 헤더로 관리
 // MonitoringProvider 제거됨 - 기획 변경으로 불필요
 import { AuthProvider } from '../contexts/AuthContext';

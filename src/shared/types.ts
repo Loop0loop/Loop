@@ -31,6 +31,52 @@ export interface Result<TData = unknown> {
   error?: string;
 }
 
+// 🔥 Sidebar navigation metadata shared across renderer components
+export interface SidebarNavigationItem {
+  readonly id: string;
+  readonly label: string;
+  readonly href: string;
+  readonly ariaLabel?: string;
+  readonly badge?: number;
+}
+
+export type SidebarSectionId = 'main' | 'footer';
+
+export interface SidebarNavigationConfig {
+  readonly items: ReadonlyArray<SidebarNavigationItem>;
+  readonly footer: ReadonlyArray<SidebarNavigationItem>;
+}
+
+export const SIDEBAR_NAVIGATION_ITEMS: ReadonlyArray<SidebarNavigationItem> = [
+  {
+    id: 'home',
+    label: '홈',
+    href: '/',
+    ariaLabel: '홈으로 이동'
+  },
+  {
+    id: 'projects',
+    label: '프로젝트',
+    href: '/projects',
+    ariaLabel: '프로젝트 목록으로 이동'
+  },
+  {
+    id: 'analytics',
+    label: '분석',
+    href: '/analytics',
+    ariaLabel: '분석으로 이동'
+  }
+] as const;
+
+export const SIDEBAR_FOOTER_ITEMS: ReadonlyArray<SidebarNavigationItem> = [
+  {
+    id: 'settings',
+    label: '설정',
+    href: '/settings',
+    ariaLabel: '설정으로 이동'
+  }
+] as const;
+
 // 🔥 IPC 응답 타입 - Main ↔ Renderer 공통
 export interface IpcResponse<TData = unknown> {
   success: boolean;

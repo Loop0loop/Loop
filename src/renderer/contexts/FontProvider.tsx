@@ -504,7 +504,7 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
       // Force a reflow to ensure browsers apply new font metrics
       try {
         // reading offsetHeight forces reflow
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         const _ = document.body.offsetHeight;
       } catch (e) {
         // ignore

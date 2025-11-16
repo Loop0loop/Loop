@@ -6,7 +6,7 @@ import { ManagerCoordinator } from './ManagerCoordinator';
 
 // 🔥 Global 타입 augmentation
 declare global {
-  // eslint-disable-next-line no-var
+   
   var mainWindow: BrowserWindow | null | undefined;
 }
 
