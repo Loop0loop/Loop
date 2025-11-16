@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { Button } from '../ui';
+import { AppHeader } from '../layout/AppHeader';
 import { AuthorQuote } from './AuthorQuote';
 import { DashboardActions } from './DashboardActions';
 import { HeroStrip } from './HeroStrip';
@@ -100,22 +100,20 @@ export function DashboardMain(): React.ReactElement {
       <div className={DASHBOARD_STYLES.backgroundLayer} />
       
       <div className={DASHBOARD_STYLES.contentWrapper}>
-        {/* 헤더 */}
-        <div className={DASHBOARD_STYLES.header} data-tour="dashboard-header">
-          <div className={DASHBOARD_STYLES.headerContent}>
-            <h1 className={DASHBOARD_STYLES.headerTitle}>홈</h1>
-            <Button
-              variant="primary"
-              size="sm"
-              className="ml-auto flex items-center gap-2"
+        {/* 🔥 동적 Header */}
+        <AppHeader
+          title="홈"
+          rightActions={
+            <button
               onClick={() => navigate('/projects?create=true')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[color:var(--accent-primary)] hover:bg-[color:var(--accent-hover)] text-[color:var(--text-inverse,#ffffff)] transition-colors font-medium"
               aria-label="새 작품 만들기"
             >
-              <Plus className="w-4 h-4" aria-hidden="true" />
+              <Plus className="w-5 h-5" aria-hidden="true" />
               새 작품
-            </Button>
-          </div>
-        </div>
+            </button>
+          }
+        />
 
         {/* 메인 콘텐츠 */}
         <div className={DASHBOARD_STYLES.content}>

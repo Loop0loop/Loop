@@ -32,6 +32,7 @@ export interface ProjectGridProps {
   readonly onShareProject?: (project: ProjectData) => void;
   readonly onDeleteProject?: (project: ProjectData) => void;
   readonly showCreateButton?: boolean;
+  readonly viewMode?: 'grid' | 'list';
 }
 
 export function ProjectGrid({
@@ -42,6 +43,7 @@ export function ProjectGrid({
   onShareProject,
   onDeleteProject,
   showCreateButton = true,
+  viewMode = 'grid',
 }: ProjectGridProps): React.ReactElement {
 
   // 🔥 기가차드 규칙: 메모화로 성능 최적화
@@ -73,25 +75,68 @@ export function ProjectGrid({
   return (
     <div className={PROJECT_GRID_STYLES.container} role="main" aria-label="프로젝트 목록" data-tour="projects-container">
 
-      {/* 프로젝트 그리드 */}
+      {/* 프로젝트 그리드/리스트 */}
       {filteredAndSortedProjects.length > 0 ? (
-        <div
-          className={PROJECT_GRID_STYLES.grid}
-          role="grid"
-          aria-label={`${filteredAndSortedProjects.length}개의 프로젝트`}
-        >
-          {filteredAndSortedProjects.map((project) => (
-            <div key={project.id} role="gridcell">
-              <ProjectCard
-                project={project}
-                onView={onViewProject}
-                onEdit={onEditProject}
-                onShare={onShareProject}
-                onDelete={onDeleteProject}
-              />
-            </div>
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div
+            className={PROJECT_GRID_STYLES.grid}
+            role="grid"
+            aria-label={`${filteredAndSortedProjects.length}개의 프로젝트`}
+          >
+            {filteredAndSortedProjects.map((project) => (
+              <div key={project.id} role="gridcell">
+                <ProjectCard
+                  project={project}
+                  onView={onViewProject}
+                  onEdit={onEditProject}
+                  onShare={onShareProject}
+                  onDelete={onDeleteProject}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          // List View
+          <div className="space-y-3">
+            {filteredAndSortedProjects.map((project) => (
+              <div
+                key={project.id}
+                className="flex items-center gap-4 p-4 border border-foreground/10 rounded-lg hover:bg-foreground/5 cursor-pointer transition-colors"
+                onClick={() => onViewProject?.(project)}
+              >
+                {/* 상태 인디케이터 */}
+                <div className="w-1 h-8 rounded-full" style={{
+                  backgroundColor: project.status === 'completed' ? '#10b981' : project.status === 'active' ? '#3b82f6' : project.status === 'paused' ? '#f59e0b' : '#6b7280'
+                }} />
+                
+                {/* 타이틀 및 메타데이터 */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground truncate">{project.title}</h3>
+                  <p className="text-sm text-foreground/60 truncate">{project.description}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-foreground/50">
+                    <span>작성: {new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(project.createdAt)}</span>
+                    <span>수정: {new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(project.updatedAt)}</span>
+                    {project.wordCount && <span>{new Intl.NumberFormat('ko-KR').format(project.wordCount)}자</span>}
+                  </div>
+                </div>
+
+                {/* 진행률 */}
+                <div className="flex flex-col items-end gap-2 w-32">
+                  <div className="text-sm font-semibold text-foreground">{Math.round(project.progress)}%</div>
+                  <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${project.progress}%`,
+                        backgroundColor: project.progress >= 100 ? '#10b981' : project.progress >= 50 ? '#3b82f6' : '#f59e0b'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : (
         <div className={PROJECT_GRID_STYLES.emptyState}>
           <div className={PROJECT_GRID_STYLES.emptyStateIcon}>

@@ -7,10 +7,12 @@ import { ProjectGrid } from '../../components/projects/ProjectGrid';
 import { ProjectCreator, type ProjectCreationData } from '../../components/projects/ProjectCreator';
 import { ProjectEditorModal } from '../../components/projects/ProjectEditorModal';
 import { ConfirmDeleteDialog } from '../../components/projects/components/ConfirmDeleteDialog';
+import { AppHeader } from '../../components/layout/AppHeader';
 import { type ProjectData } from '../../components/projects/ProjectCard';
 import { Logger } from '../../../shared/logger';
 import { useGuidedTour } from '../../modules/tutorial/useGuidedTour';
 import { useTutorial } from '../../modules/tutorial/useTutorial';
+import { useViewMode } from '../../hooks/useViewMode';
 import type { KoreanWebNovelGenre, ProjectStatus } from '../../../shared/constants/enums';
 
 // 🔥 기가차드 규칙: 프리컴파일된 스타일 상수
@@ -39,6 +41,9 @@ function ProjectsPageContent(): React.ReactElement {
   // 🔥 튜토리얼 시스템 (Projects 페이지에서도 필요!)
   useGuidedTour();
   const { startTutorial, isActive, closeTutorial } = useTutorial();
+  
+  // 🔥 View Mode 관리
+  const { viewMode, setViewMode } = useViewMode('grid');
   
   const [projects, setProjects] = useState<readonly ProjectData[]>(DEFAULT_PROJECTS);
   const [loading, setLoading] = useState<boolean>(true);
@@ -427,19 +432,26 @@ function ProjectsPageContent(): React.ReactElement {
   }
 
   return (
-    <div className={PROJECTS_PAGE_STYLES.container} data-tour="projects-container">
-      {/* 🔥 프로젝트 페이지 헤더 */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-foreground">나의 소설</h1>
-        <button
-          onClick={() => setShowCreator(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[color:var(--accent-primary)] hover:bg-[color:var(--accent-hover)] text-[color:var(--text-inverse,#ffffff)] transition-colors font-medium"
-          aria-label="새 프로젝트 생성"
-        >
-          <Plus className="w-5 h-5" />
-          새 프로젝트
-        </button>
-      </div>
+    <>
+      {/* 🔥 동적 Header */}
+      <AppHeader
+        title="나의 소설"
+        viewMode={viewMode as 'grid' | 'list'}
+        onViewModeChange={setViewMode}
+        showViewToggle={true}
+        rightActions={
+          <button
+            onClick={() => setShowCreator(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[color:var(--accent-primary)] hover:bg-[color:var(--accent-hover)] text-[color:var(--text-inverse,#ffffff)] transition-colors font-medium"
+            aria-label="새 프로젝트 생성"
+          >
+            <Plus className="w-5 h-5" />
+            새 작품
+          </button>
+        }
+      />
+
+      <div className={PROJECTS_PAGE_STYLES.container} data-tour="projects-container">
 
       {/* 🔥 프로젝트 생성 다이얼로그 - 항상 렌더링 (isOpen으로만 제어) */}
       {/* 조건부 렌더링 제거 → element 검색 시 항상 찾을 수 있음 */}
@@ -492,8 +504,10 @@ function ProjectsPageContent(): React.ReactElement {
         onDeleteProject={handleDeleteProject}
         onViewProject={handleSelectProject}
         data-tour="projects-grid"
+        viewMode={viewMode as 'grid' | 'list'}
       />
-    </div>
+      </div>
+    </>
   );
 }
 
