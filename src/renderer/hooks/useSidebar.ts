@@ -32,9 +32,8 @@ export function useSidebar({
   const lastValue = useRef<SidebarState>(defaultState);
 
   useEffect(() => {
-    // appSidebarCollapsed가 true면 'hidden', false면 'expanded' 또는 이전 상태 유지
     const isCollapsedSetting = settings?.appSidebarCollapsed ?? false;
-    let nextState: SidebarState = isCollapsedSetting ? 'hidden' : 'expanded';
+    const nextState: SidebarState = isCollapsedSetting ? 'collapsed' : 'expanded';
     
     if (nextState !== lastValue.current) {
       lastValue.current = nextState;
@@ -48,9 +47,12 @@ export function useSidebar({
       setState(nextState);
       lastValue.current = nextState;
       if (updateSetting) {
-        // 'hidden' 상태는 appSidebarCollapsed = true로 저장
-        const isHidden = nextState === 'hidden';
-        void updateSetting('ui', 'appSidebarCollapsed', isHidden);
+        if (nextState === 'hidden') {
+          return;
+        }
+
+        const shouldCollapse = nextState === 'collapsed';
+        void updateSetting('ui', 'appSidebarCollapsed', shouldCollapse);
       }
     },
     [updateSetting]
