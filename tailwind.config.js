@@ -11,7 +11,20 @@ module.exports = {
     extend: {
       // 🔥 CSS 변수를 인식하도록 fontFamily 설정
       fontFamily: {
-        'app': ['var(--app-font-family)', 'system-ui', 'sans-serif'],
+        'app': [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          '"Noto Sans"',
+          'sans-serif',
+          '"Apple Color Emoji"',
+          '"Segoe UI Emoji"',
+          '"Segoe UI Symbol"',
+          '"Noto Color Emoji"',
+        ],
         'dynamic': ['var(--dynamic-font-family)', 'system-ui', 'sans-serif'],
       },
       // 🔥 CSS 변수를 인식하도록 fontSize 설정
@@ -52,6 +65,18 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        // 🎯 사이드바 전용 색상 시스템
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))',
+          background: 'hsl(var(--sidebar-background))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+          accent: 'hsl(var(--sidebar-accent))',
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+          border: 'hsl(var(--sidebar-border))',
+          ring: 'hsl(var(--sidebar-ring))',
         },
       },
       borderRadius: {

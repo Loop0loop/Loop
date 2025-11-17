@@ -9,10 +9,10 @@ import { ThemeProvider } from '../providers/ThemeProvider';
 import { useSettings } from './settings/hooks/useSettings';
 import { Logger } from '../../shared/logger';
 import '../styles/index.css';
+import { Avatar } from '../components/ui/Avatar';
+import { ChevronLeft, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
 import {
-    SidebarHeader,
     SidebarNavigationList,
-    SidebarFooterPanel,
     SIDEBAR_STYLES,
     SIDEBAR_NAVIGATION_ENTRIES,
     SIDEBAR_FOOTER_ENTRIES,
@@ -38,7 +38,6 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
 
     // 프로젝트 페이지 확인
     const isProjectPage = pathname.startsWith('/projects/');
-    const isDashboardPage = pathname === '/' || pathname === '/dashboard';
 
     // restore sidebar state before paint
     useLayoutEffect(() => {
@@ -101,13 +100,7 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
         updateSetting('ui', 'appSidebarCollapsed', newState);
     };
 
-    useEffect(() => {
-        if (isDashboardPage && sidebarCollapsed) {
-            setSidebarCollapsed(false);
-        }
-    }, [isDashboardPage, sidebarCollapsed]);
-
-    const effectiveCollapsed = isDashboardPage ? false : sidebarCollapsed;
+    const effectiveCollapsed = sidebarCollapsed;
 
     return (
         <div className="flex h-screen w-screen overflow-hidden app-root">
@@ -115,7 +108,6 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
                 <aside className="flex-shrink-0 h-full">
                     <SidebarPanel
                         pathname={pathname}
-                        forceExpanded={isDashboardPage}
                         collapsed={effectiveCollapsed}
                         onNavigate={handleNavigate}
                         onToggleCollapse={handleToggleSidebar}
@@ -136,7 +128,6 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
 
 interface SidebarPanelProps {
     readonly collapsed: boolean;
-    readonly forceExpanded?: boolean;
     readonly pathname: string;
     readonly onNavigate: (href: string) => void;
     readonly onToggleCollapse: () => void;
@@ -146,7 +137,6 @@ interface SidebarPanelProps {
 
 function SidebarPanel({
     collapsed,
-    forceExpanded = false,
     pathname,
     onNavigate,
     onToggleCollapse,
@@ -162,22 +152,24 @@ function SidebarPanel({
     const [isClient, setIsClient] = useState<boolean>(false);
     const [canRenderPortal, setCanRenderPortal] = useState<boolean>(false);
 
-    const isDashboardRoute = forceExpanded || pathname === '/' || pathname === '/dashboard';
-    const effectiveCollapsed = isDashboardRoute ? false : collapsed;
     const hoverAreaClass = useMemo(() => (pathname.startsWith('/projects/') ? 'w-8' : 'w-12'), [pathname]);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const visibleProfile: any = (authLoaded && googleUserInfo && googleUserInfo.isAuthenticated)
-        ? googleUserInfo
-        : accountProfile
-            ? {
-                isAuthenticated: !!(accountProfile.displayName || accountProfile.username || accountProfile.email),
-                userName: accountProfile.displayName || accountProfile.username,
-                userEmail: accountProfile.email,
-                userPicture: accountProfile.avatar,
-            }
-            : null;
+    const effectiveCollapsed = collapsed;
+
+    const displayName = (accountProfile?.displayName
+        || accountProfile?.username
+        || accountProfile?.email
+        || (googleUserInfo?.isAuthenticated ? (googleUserInfo.userName || googleUserInfo.userEmail) : null)
+        || 'Loop 사용자');
+
+    const renderStatusText = (): string => {
+        if (!authLoaded) return '상태 확인 중...';
+        if (googleUserInfo?.isAuthenticated) return 'Google 계정';
+        if (accountProfile?.displayName || accountProfile?.username || accountProfile?.email) return '로컬 계정';
+        return isOnline ? '온라인' : '오프라인';
+    };
 
     useEffect(() => {
         if (accountProfile?.avatar) {
@@ -304,8 +296,8 @@ function SidebarPanel({
 
     const [isCollapsedHovering, setIsCollapsedHovering] = useState(false);
 
-    const handleMouseEnter = useCallback(() => { if (effectiveCollapsed) setIsCollapsedHovering(true); }, [effectiveCollapsed]);
-    const handleMouseLeave = useCallback(() => { if (effectiveCollapsed) setIsCollapsedHovering(false); }, [effectiveCollapsed]);
+    const handleMouseEnter = useCallback(() => { if (collapsed) setIsCollapsedHovering(true); }, [collapsed]);
+    const handleMouseLeave = useCallback(() => { if (collapsed) setIsCollapsedHovering(false); }, [collapsed]);
 
     const handleNavigation = useCallback((item: SidebarNavigationEntry) => {
         try {
@@ -323,47 +315,74 @@ function SidebarPanel({
     }, [handleNavigation]);
 
     const handleProfileNavigate = useCallback(() => onNavigate('/settings'), [onNavigate]);
+    const settingsEntry = SIDEBAR_FOOTER_ENTRIES[0];
+    const sidebarContentIsExpanded = !effectiveCollapsed || isCollapsedHovering;
 
     const SidebarContent = ({ isExpanded }: { isExpanded: boolean }) => (
-        <div className="flex flex-col h-full w-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))]">
-            <div className="px-3 py-4">
-                <SidebarHeader
-                    isExpanded={isExpanded}
-                    avatarSrc={avatarSrc}
-                    accountProfile={accountProfile}
-                    googleUserInfo={googleUserInfo}
-                    authLoaded={authLoaded}
-                    settingsLoading={settingsLoading}
-                    isOnline={isOnline}
-                    visibleProfile={visibleProfile}
-                    onAvatarClick={handleAvatarClick}
-                    onProfileNavigate={handleProfileNavigate}
-                    onToggleCollapse={onToggleCollapse}
-                />
+        <div className={SIDEBAR_STYLES.container}>
+            {/* 헤더 - 로고 및 토글 버튼 */}
+            <div className={SIDEBAR_STYLES.logoSection}>
+                <h1 className={SIDEBAR_STYLES.logoText}>Loop</h1>
+                <button
+                    type="button"
+                    className="p-1.5 rounded-lg hover:bg-sidebar-accent/60 transition-colors duration-150"
+                    onClick={onToggleCollapse}
+                    aria-label={isExpanded ? '사이드바 축소' : '사이드바 확장'}
+                    title={isExpanded ? '축소' : '확장'}
+                >
+                    {isExpanded ? <ChevronLeft className="w-5 h-5 text-sidebar-foreground" /> : <ChevronRight className="w-5 h-5 text-sidebar-foreground" />}
+                </button>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-[hsl(var(--sidebar-background))]">
-                <nav className="px-3 py-4" aria-label="메인 메뉴">
-                    <div className="space-y-1">
-                        <SidebarNavigationList
-                            items={SIDEBAR_NAVIGATION_ENTRIES}
-                            isExpanded={isExpanded}
-                            currentPath={pathname}
-                            onSelect={handleNavigation}
-                            onKeyDown={handleKeyDown}
-                        />
-                    </div>
-                </nav>
-            </div>
-
-            <div className="flex-shrink-0">
-                <SidebarFooterPanel
+            {/* 네비게이션 */}
+            <nav className={SIDEBAR_STYLES.navSection} aria-label="메인 메뉴">
+                <SidebarNavigationList
+                    items={SIDEBAR_NAVIGATION_ENTRIES}
                     isExpanded={isExpanded}
-                    footerItems={SIDEBAR_FOOTER_ENTRIES}
                     currentPath={pathname}
-                    onNavigate={handleNavigation}
+                    onSelect={handleNavigation}
                     onKeyDown={handleKeyDown}
                 />
+            </nav>
+
+            {/* 하단 섹션 - 프로필 및 설정 */}
+            <div className={SIDEBAR_STYLES.bottomSection}>
+                {/* 프로필 버튼 */}
+                <button
+                    type="button"
+                    className={SIDEBAR_STYLES.profileButton}
+                    onClick={handleProfileNavigate}
+                    title={displayName}
+                >
+                    <Avatar
+                        size="md"
+                        src={avatarSrc || undefined}
+                        aria-label={displayName}
+                        className="border border-sidebar-border/40 flex-shrink-0"
+                    >
+                        <span className="font-medium text-sidebar-foreground">{displayName.charAt(0).toUpperCase()}</span>
+                    </Avatar>
+                    <div className={SIDEBAR_STYLES.profileInfo}>
+                        <div className={SIDEBAR_STYLES.profileName}>{displayName}</div>
+                        <div className={SIDEBAR_STYLES.profileStatus}>
+                            <span className={`${SIDEBAR_STYLES.statusDot} ${isOnline ? 'bg-emerald-500' : 'bg-sidebar-foreground/40'}`} />
+                            <span className={SIDEBAR_STYLES.statusText}>{renderStatusText()}</span>
+                        </div>
+                    </div>
+                </button>
+
+                {/* 설정 버튼 */}
+                {settingsEntry && (
+                    <button
+                        type="button"
+                        className={SIDEBAR_STYLES.settingsButton}
+                        onClick={() => handleNavigation(settingsEntry)}
+                        title="설정"
+                    >
+                        <SettingsIcon className="w-4 h-4 flex-shrink-0" />
+                        <span>설정</span>
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -385,22 +404,21 @@ function SidebarPanel({
             )}
             {effectiveCollapsed && isCollapsedHovering && canRenderPortal && createPortal(
                 <div
-                    className="fixed left-0 top-0 h-full w-64 bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))] shadow-xl transform transition-transform duration-300 ease-out animate-slide-in-left"
-                    style={{ zIndex: 2147483646, transform: 'translateX(0)' }}
+                    className={SIDEBAR_STYLES.hoverContent}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                     onMouseOver={handleMouseEnter}
                     onMouseOut={handleMouseLeave}
-                    aria-label="사이드바 네비게이션 (Portal)"
+                    aria-label="사이드바 네비게이션"
                     role="navigation"
                 >
-                    <SidebarContent isExpanded />
+                    <SidebarContent isExpanded={sidebarContentIsExpanded} />
                 </div>,
                 document.body
             )}
             {!effectiveCollapsed && (
                 <aside className={SIDEBAR_STYLES.container} aria-label="사이드바 네비게이션" role="navigation">
-                    <SidebarContent isExpanded />
+                    <SidebarContent isExpanded={sidebarContentIsExpanded} />
                 </aside>
             )}
         </div>
