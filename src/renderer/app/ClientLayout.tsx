@@ -110,9 +110,9 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
     const effectiveCollapsed = isDashboardPage ? false : sidebarCollapsed;
 
     return (
-        <div className="min-h-screen flex min-w-0 app-root">
+        <div className="flex h-screen w-screen overflow-hidden app-root">
             {!isFocusMode && !isProjectPage && (
-                <aside className="flex-shrink-0">
+                <aside className="flex-shrink-0 h-full">
                     <SidebarPanel
                         pathname={pathname}
                         forceExpanded={isDashboardPage}
@@ -125,8 +125,8 @@ function ClientLayoutInner({ children }: { children: ReactNode }): React.ReactEl
                 </aside>
             )}
 
-            <main className="flex-1 flex flex-col min-w-0">
-                <div className="flex-1 min-w-0 p-0 overflow-y-auto">
+            <main className="flex-1 h-full flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-0 no-scrollbar">
                     {children}
                 </div>
             </main>
@@ -326,23 +326,25 @@ function SidebarPanel({
 
     const SidebarContent = ({ isExpanded }: { isExpanded: boolean }) => (
         <div className="flex flex-col h-full w-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))]">
-            <SidebarHeader
-                isExpanded={isExpanded}
-                avatarSrc={avatarSrc}
-                accountProfile={accountProfile}
-                googleUserInfo={googleUserInfo}
-                authLoaded={authLoaded}
-                settingsLoading={settingsLoading}
-                isOnline={isOnline}
-                visibleProfile={visibleProfile}
-                onAvatarClick={handleAvatarClick}
-                onProfileNavigate={handleProfileNavigate}
-                onToggleCollapse={onToggleCollapse}
-            />
+            <div className="px-3 py-4">
+                <SidebarHeader
+                    isExpanded={isExpanded}
+                    avatarSrc={avatarSrc}
+                    accountProfile={accountProfile}
+                    googleUserInfo={googleUserInfo}
+                    authLoaded={authLoaded}
+                    settingsLoading={settingsLoading}
+                    isOnline={isOnline}
+                    visibleProfile={visibleProfile}
+                    onAvatarClick={handleAvatarClick}
+                    onProfileNavigate={handleProfileNavigate}
+                    onToggleCollapse={onToggleCollapse}
+                />
+            </div>
 
-            <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[hsl(var(--sidebar-background))]">
-                <nav className="py-4" aria-label="메인 메뉴">
-                    <div className="space-y-1 px-3">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-[hsl(var(--sidebar-background))]">
+                <nav className="px-3 py-4" aria-label="메인 메뉴">
+                    <div className="space-y-1">
                         <SidebarNavigationList
                             items={SIDEBAR_NAVIGATION_ENTRIES}
                             isExpanded={isExpanded}
@@ -354,18 +356,20 @@ function SidebarPanel({
                 </nav>
             </div>
 
-            <SidebarFooterPanel
-                isExpanded={isExpanded}
-                footerItems={SIDEBAR_FOOTER_ENTRIES}
-                currentPath={pathname}
-                onNavigate={handleNavigation}
-                onKeyDown={handleKeyDown}
-            />
+            <div className="flex-shrink-0">
+                <SidebarFooterPanel
+                    isExpanded={isExpanded}
+                    footerItems={SIDEBAR_FOOTER_ENTRIES}
+                    currentPath={pathname}
+                    onNavigate={handleNavigation}
+                    onKeyDown={handleKeyDown}
+                />
+            </div>
         </div>
     );
 
     return (
-        <div className="relative h-full">
+        <div className="relative h-screen max-h-screen">
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} aria-hidden="true" />
             {effectiveCollapsed && canRenderPortal && createPortal(
                 <div
