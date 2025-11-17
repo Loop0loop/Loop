@@ -12,7 +12,7 @@ export interface UseSidebarOptions {
 export interface UseSidebarReturn {
   readonly isCollapsed: boolean;
   readonly isReady: boolean;
-  readonly toggleCollapsed: (nextState?: boolean) => void;
+  readonly toggleCollapsed: () => void;
   readonly setCollapsed: (nextState: boolean) => void;
 }
 
@@ -22,14 +22,16 @@ export function useSidebar({
   defaultCollapsed = false,
 }: UseSidebarOptions = {}): UseSidebarReturn {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(defaultCollapsed);
+  const [isReady, setIsReady] = useState<boolean>(false);
   const lastValue = useRef<boolean>(defaultCollapsed);
 
   useEffect(() => {
-    const nextValue = settings?.appSidebarCollapsed ?? settings?.sidebarCollapsed ?? defaultCollapsed;
+    const nextValue = settings?.appSidebarCollapsed ?? defaultCollapsed;
     if (nextValue !== lastValue.current) {
       lastValue.current = nextValue;
       setIsCollapsed(nextValue);
     }
+    setIsReady(true);
   }, [settings?.appSidebarCollapsed, defaultCollapsed]);
 
   const persistCollapse = useCallback(
@@ -43,6 +45,11 @@ export function useSidebar({
     [updateSetting]
   );
 
+  const toggleCollapsed = useCallback(() => {
+    const nextState = !lastValue.current;
+    persistCollapse(nextState);
+  }, [persistCollapse]);
+
   const setCollapsed = useCallback(
     (nextState: boolean) => {
       persistCollapse(nextState);
@@ -50,17 +57,9 @@ export function useSidebar({
     [persistCollapse]
   );
 
-  const toggleCollapsed = useCallback(
-    (nextState?: boolean) => {
-      const target = typeof nextState === 'boolean' ? nextState : !isCollapsed;
-      persistCollapse(target);
-    },
-    [isCollapsed, persistCollapse]
-  );
-
   return {
     isCollapsed,
-    isReady: typeof settings !== 'undefined',
+    isReady,
     toggleCollapsed,
     setCollapsed,
   };

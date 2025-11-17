@@ -42,6 +42,20 @@
   --sidebar-border: 220 13% 91%;
   --sidebar-ring: 217.2 91.2% 59.8%;
 
+  /* Loop 사이드바 전용 - Light 테마 */
+  --sidebar-background: #fafbfc;
+  --sidebar-foreground: #1e293b;
+  --sidebar-gradient-start: #f0f4f8;
+  --sidebar-gradient-end: #e8eef5;
+  --sidebar-icon-foreground: #475569;
+  --sidebar-text-foreground: #1e293b;
+  --sidebar-hover-bg: #e2e8f0;
+  --sidebar-border-color: #cbd5e1;
+  --sidebar-primary-active: #2563eb;
+  --sidebar-primary-active-text: #ffffff;
+  --sidebar-secondary-bg: #f1f5f9;
+  --sidebar-divider-color: #e2e8f0;
+
   /* 🔥 기가차드 작가 친화적 색상 시스템 - 라이트 모드 */
   --bg-primary: #fefcf7;
   --bg-secondary: #f8f6f0;
@@ -296,15 +310,19 @@
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9;
 
-  /* Sidebar Dark Colors */
-  --sidebar-background: 240 5.9% 10%;
-  --sidebar-foreground: 240 4.8% 95.9%;
-  --sidebar-primary: 224.3 76.3% 94.1%;
-  --sidebar-primary-foreground: 240 5.9% 10%;
-  --sidebar-accent: 240 3.7% 15.9%;
-  --sidebar-accent-foreground: 240 4.8% 95.9%;
-  --sidebar-border: 240 3.7% 15.9%;
-  --sidebar-ring: 217.2 91.2% 59.8%;
+  /* Loop 사이드바 전용 - Dark 테마 */
+  --sidebar-background: #0f172a;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-gradient-start: #0c1628;
+  --sidebar-gradient-end: #080b12;
+  --sidebar-icon-foreground: #cbd5e1;
+  --sidebar-text-foreground: #e2e8f0;
+  --sidebar-hover-bg: #1e293b;
+  --sidebar-border-color: #1e293b;
+  --sidebar-primary-active: #3b82f6;
+  --sidebar-primary-active-text: #ffffff;
+  --sidebar-secondary-bg: #1a222e;
+  --sidebar-divider-color: #1e293b;
 
   /* 🔥 Dark 테마 - 작가 친화적 다크 모드 */
   --bg-primary: #0f1419;
