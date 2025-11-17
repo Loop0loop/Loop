@@ -805,7 +805,7 @@ export class NCPStoryAnalyzer {
 
     private analyzePacing(plotPoints: PlotPoint[]): string[] {
         const suggestions: string[] = [];
-        let tensionLevels = plotPoints.map(p => this.calculateConflictIntensity(p));
+        const tensionLevels = plotPoints.map(p => this.calculateConflictIntensity(p));
 
         // 연속된 고긴장 구간 체크
         let highCount = 0;

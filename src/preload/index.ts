@@ -560,7 +560,7 @@ try {
 // OAuth 성공 콜백 전역 핸들러
 // ============================================================
 // StaticServer의 콜백 페이지에서 window.electronAPI?.onOAuthSuccess?.() 호출 가능
-let oauthSuccessCallbacks: (() => void)[] = [];
+const oauthSuccessCallbacks: (() => void)[] = [];
 
 contextBridge.exposeInMainWorld('electronAPI', {
   ...electronAPIFinal,
@@ -639,7 +639,7 @@ contextBridge.exposeInMainWorld('loopSnapshot', {
       };
       try {
         // Prefer userData location (production fallback) then fallback to project root (dev)
-        let snapPath = safePathJoin(process.cwd(), '.auth_snapshot.json');
+        const snapPath = safePathJoin(process.cwd(), '.auth_snapshot.json');
         // Note: In preload context, we cannot directly access app.getPath()
         // This should be handled via IPC if userData path is needed
         // For now, using safe fallback to current working directory

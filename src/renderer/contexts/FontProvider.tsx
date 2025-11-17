@@ -321,7 +321,7 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
 
           // Remove @font-face blocks that reference the fontName (safe string parsing)
           try {
-            let lowerCss = css.toLowerCase();
+            const lowerCss = css.toLowerCase();
             const lowerFont = fontName.toLowerCase();
             let out = '';
             let pos = 0;

@@ -268,7 +268,7 @@ export function setupAIIpcHandlers(): void {
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
       // AI 서비스에서 실제 사용량 가져오기
-      let usageStats = {
+      const usageStats = {
         totalRequests: 0,
         totalTokens: 0,
         totalCost: 0,
