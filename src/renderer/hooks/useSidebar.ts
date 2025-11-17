@@ -33,8 +33,8 @@ export function useSidebar({
 
   useEffect(() => {
     const isCollapsedSetting = settings?.appSidebarCollapsed ?? false;
-    const nextState: SidebarState = isCollapsedSetting ? 'collapsed' : 'expanded';
-    
+    const nextState: SidebarState = isCollapsedSetting ? 'hidden' : 'expanded';
+
     if (nextState !== lastValue.current) {
       lastValue.current = nextState;
       setState(nextState);
@@ -46,14 +46,12 @@ export function useSidebar({
     (nextState: SidebarState) => {
       setState(nextState);
       lastValue.current = nextState;
-      if (updateSetting) {
-        if (nextState === 'hidden') {
-          return;
-        }
-
-        const shouldCollapse = nextState === 'collapsed';
-        void updateSetting('ui', 'appSidebarCollapsed', shouldCollapse);
+      if (!updateSetting) {
+        return;
       }
+
+      const shouldCollapse = nextState !== 'expanded';
+      void updateSetting('ui', 'appSidebarCollapsed', shouldCollapse);
     },
     [updateSetting]
   );
