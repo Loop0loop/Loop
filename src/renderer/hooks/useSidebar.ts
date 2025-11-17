@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SettingsData, UpdateSettingFunction } from '../app/settings/types';
 
-export type SidebarState = 'expanded' | 'collapsed' | 'hidden';
-
+export type SidebarState = 'expanded' | 'collapsed';
 export interface UseSidebarOptions {
   readonly settings?: SettingsData['ui'] | null;
   readonly updateSetting?: UpdateSettingFunction;
@@ -12,88 +11,60 @@ export interface UseSidebarOptions {
 }
 
 export interface UseSidebarReturn {
-  readonly state: SidebarState;
-  readonly isExpanded: boolean;
-  readonly isCollapsed: boolean;
+  readonly baseState: SidebarState;
   readonly isHidden: boolean;
   readonly isReady: boolean;
   readonly toggleCollapsed: () => void;
-  readonly setState: (nextState: SidebarState) => void;
+  readonly setBaseState: (nextState: SidebarState) => void;
   readonly setHidden: (hidden: boolean) => void;
 }
-
 export function useSidebar({
   settings,
   updateSetting,
   defaultState = 'expanded',
 }: UseSidebarOptions = {}): UseSidebarReturn {
-  const [state, setState] = useState<SidebarState>(defaultState);
+  const [baseState, setBaseState] = useState<SidebarState>(defaultState);
+  const [isHidden, setIsHidden] = useState<boolean>(settings?.appSidebarCollapsed ?? false);
   const [isReady, setIsReady] = useState<boolean>(false);
-  const lastValue = useRef<SidebarState>(defaultState);
 
   useEffect(() => {
-    const isCollapsedSetting = settings?.appSidebarCollapsed ?? false;
-    const nextState: SidebarState = isCollapsedSetting ? 'hidden' : 'expanded';
-
-    if (nextState !== lastValue.current) {
-      lastValue.current = nextState;
-      setState(nextState);
-    }
+    setIsHidden(settings?.appSidebarCollapsed ?? false);
     setIsReady(true);
   }, [settings?.appSidebarCollapsed]);
 
-  const persistState = useCallback(
-    (nextState: SidebarState) => {
-      setState(nextState);
-      lastValue.current = nextState;
+  const persistHidden = useCallback(
+    (hidden: boolean) => {
+      setIsHidden(hidden);
       if (!updateSetting) {
         return;
       }
 
-      const shouldCollapse = nextState !== 'expanded';
-      void updateSetting('ui', 'appSidebarCollapsed', shouldCollapse);
+      void updateSetting('ui', 'appSidebarCollapsed', hidden);
     },
     [updateSetting]
   );
 
   const toggleCollapsed = useCallback(() => {
-    const current = lastValue.current;
-    let nextState: SidebarState;
-    
-    if (current === 'expanded') {
-      nextState = 'collapsed';
-    } else if (current === 'collapsed') {
-      nextState = 'expanded';
-    } else {
-      // hidden → expanded
-      nextState = 'expanded';
-    }
-    
-    persistState(nextState);
-  }, [persistState]);
+    setBaseState((current) => (current === 'expanded' ? 'collapsed' : 'expanded'));
+  }, []);
 
-  const setStateCallback = useCallback(
-    (nextState: SidebarState) => {
-      persistState(nextState);
-    },
-    [persistState]
-  );
+  const setBaseStateCallback = useCallback((nextState: SidebarState) => {
+    setBaseState(nextState);
+  }, []);
 
   const setHidden = useCallback(
     (hidden: boolean) => {
-      persistState(hidden ? 'hidden' : 'expanded');
+      persistHidden(hidden);
     },
-    [persistState]
+    [persistHidden]
   );
 
   return {
-    state,
-    isExpanded: state === 'expanded',
-    isCollapsed: state === 'collapsed',
-    isHidden: state === 'hidden',
+    baseState,
+    isHidden,
     isReady,
     toggleCollapsed,
-    setState: setStateCallback,
+    setBaseState: setBaseStateCallback,
     setHidden,
   };
 }
