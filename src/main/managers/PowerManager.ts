@@ -3,6 +3,7 @@
 import { Logger } from '../../shared/logger';
 import { BaseManager } from '../common/BaseManager';
 import { powerMonitor, powerSaveBlocker } from 'electron';
+import { spawn } from 'child_process';
 import { Result } from '../../shared/types';
 import { Platform } from '../utils/platform';
 
@@ -270,8 +271,6 @@ export class PowerManager extends BaseManager {
         // macOS에서는 시스템 명령어로 배터리 레벨 가져오기
           try {
           // Use spawn to avoid shell interpolation and pipelines
-          // child_process.spawn imported at top-level
-          const { spawn } = require('child_process');
           const pm = spawn('pmset', ['-g', 'batt']);
           let out = '';
           pm.stdout.on('data', (chunk: Buffer) => { out += chunk.toString(); });

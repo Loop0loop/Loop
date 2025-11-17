@@ -28,8 +28,13 @@ export function useSidebar({
   const [isReady, setIsReady] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsHidden(settings?.appSidebarCollapsed ?? false);
-    setIsReady(true);
+    const animation = requestAnimationFrame(() => {
+      setIsHidden(settings?.appSidebarCollapsed ?? false);
+      setIsReady(true);
+    });
+    return () => {
+      cancelAnimationFrame(animation);
+    };
   }, [settings?.appSidebarCollapsed]);
 
   const persistHidden = useCallback(

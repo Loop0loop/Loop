@@ -3,11 +3,13 @@
 // MIGRATION: MIGRATED FROM projectIpcHandlers.ts:19-556
 // MIGRATION: TODO verify Prisma disconnect, error handling, 'new' ID edge case
 
-import { ipcMain, IpcMainInvokeEvent } from 'electron';
+import { ipcMain, IpcMainInvokeEvent, dialog } from 'electron';
 import { Logger } from '../../shared/logger';
 import { IpcResponse, Project } from '../../shared/types';
 import type { KoreanWebNovelGenre, ProjectStatus } from '../../shared/constants/enums';
 import { prismaService } from '../services/PrismaService';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../shared/validation/projectValidation';
 import { globalRateLimiter, channelLimiters } from '../services/RateLimiterService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
@@ -662,9 +664,7 @@ Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
     try {
       Logger.debug('PROJECT_CRUD_IPC', 'Starting file import process');
 
-      const { dialog } = require('electron');
-      const fs = require('fs').promises;
-      const path = require('path');
+      // dialog, fs.promises and path are statically imported at top of the file
 
       // 파일 선택 다이얼로그 열기
       const result = await dialog.showOpenDialog({

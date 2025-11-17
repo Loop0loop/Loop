@@ -70,19 +70,25 @@ class RendererLoggerService {
       const prefix = `[${timestamp}] ${levelName} [${componentName}]`;
 
       // 🔥 Emoji 아이콘 출력 (logger.ts와 동일)
-      switch (level) {
-        case LogLevel.DEBUG:
-          console.debug(`🔍 ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.INFO:
-          console.info(`ℹ️ ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.WARN:
-          console.warn(`⚠️ ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.ERROR:
-          console.error(`❌ ${prefix}`, message, verboseMode && data ? data : '');
-          break;
+      const emoji =
+        level === LogLevel.DEBUG
+          ? '🔍'
+          : level === LogLevel.INFO
+          ? 'ℹ️'
+          : level === LogLevel.WARN
+          ? '⚠️'
+          : '❌';
+      const consoleArgs: unknown[] = [`${emoji} ${prefix}`, message];
+      if (verboseMode && data) {
+        consoleArgs.push(data);
+      } else if (level === LogLevel.ERROR && data) {
+        consoleArgs.push(data);
+      }
+
+      if (level === LogLevel.ERROR) {
+        console.error(...consoleArgs);
+      } else {
+        console.warn(...consoleArgs);
       }
     }
   }

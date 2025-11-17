@@ -474,7 +474,9 @@ export class OAuthService extends BaseManager {
       try {
         const wins = windowManager.getAllWindows();
         wins.forEach(w => {
-          try { w.webContents.send('auth-status-changed', { isAuthenticated: false }); } catch (e) { }
+          try { w.webContents.send('auth-status-changed', { isAuthenticated: false }); } catch (e) {
+            Logger.debug(this.componentName, 'Failed to notify window about logout', { error: e });
+          }
         });
       } catch (e) {
         Logger.warn(this.componentName, 'Failed to broadcast logout to renderers', e);

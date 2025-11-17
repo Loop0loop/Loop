@@ -93,7 +93,9 @@ export class DatabaseService {
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('DATABASE', 'Loading Prisma client from @prisma/client');
        
-      const { PrismaClient } = require('@prisma/client');
+      // Use dynamic import to satisfy no-require-imports rule
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { PrismaClient } = (await import('@prisma/client')) as any;
 
       this.prisma = new PrismaClient({
         datasources: {

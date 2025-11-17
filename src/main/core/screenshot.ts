@@ -1,6 +1,6 @@
 // 🔥 기가차드 스크린샷 관리자 - 화면 캡처 전문가!
 
-import { screen, desktopCapturer, nativeImage, app, dialog } from 'electron';
+import { screen, desktopCapturer, nativeImage, app, dialog, shell } from 'electron';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 import { Logger } from '../../shared/logger';
@@ -425,7 +425,6 @@ export class ScreenshotManager {
       // #DEBUG: Opening save directory
       Logger.debug('SCREENSHOT', 'Opening save directory');
 
-      const { shell } = require('electron');
       await shell.openPath(this.config.saveDirectory);
 
       Logger.info('SCREENSHOT', 'Save directory opened successfully');

@@ -12,7 +12,8 @@ export function HydrationGuard({ children, fallback = null }: HydrationGuardProp
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsHydrated(true);
+    const animationId = requestAnimationFrame(() => setIsHydrated(true));
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
   return <>{isHydrated ? children : fallback}</>;

@@ -8,7 +8,8 @@ import { EventController } from './EventController';
 import { SettingsWatcher } from './SettingsWatcher';
 import { ShutdownManager } from './ShutdownManager';
 import { unifiedPermissionManager } from '../utils/UnifiedPermissionManager';
-import { APP_IDENTITY, FILE_PATHS } from '../constants';
+import { APP_IDENTITY, FILE_PATHS as _FILE_PATHS } from '../constants';
+import { EnvironmentService as _EnvironmentService } from '../services/EnvironmentService';
 // Register keychain IPC handlers
 import { registerKeychainHandlers } from '../handlers/keychainIpcHandlers';
 import registerNotificationHandlers from '../handlers/notificationIpcHandlers';
@@ -17,7 +18,7 @@ import { windowManager } from '../core/window';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fontService } from '../services/FontService';
-import { safePathJoin, safePathResolve } from '../../shared/utils/pathSecurity';
+import { safePathJoin, safePathResolve as _safePathResolve } from '../../shared/utils/pathSecurity';
 import { IconResolver } from '../utils/IconResolver';
 
 // Helper: resolve + whitelist + containment checks to avoid path traversal
@@ -26,7 +27,10 @@ function resolveAndValidate(filePath: string | null, baseDir: string, allowedFil
     if (!filePath) return null;
 
     // 🔒 보안: 입력값 strict sanitization
-    const sanitizedPath = filePath.replace(/[<>:"|?*\x00-\x1f]/g, '').trim();
+      // Remove disallowed filename characters and control characters without using control regex
+      const raw = filePath.replace(/[<>:"|?*]/g, '');
+      const cpFiltered = [...raw].filter(c => c.charCodeAt(0) > 31).join('');
+      const sanitizedPath = cpFiltered.trim();
     if (!sanitizedPath || sanitizedPath.includes('..') || sanitizedPath.startsWith('/') || sanitizedPath.startsWith('\\')) {
       return null;
     }
@@ -115,7 +119,9 @@ export class ApplicationBootstrapper {
    */
   private initializeEnvironmentServiceEarly(): void {
     try {
-      const { EnvironmentService } = require('../services/EnvironmentService');
+      // Ensure EnvironmentService is imported and can be prefetched here
+      // This avoids dynamic requires in packaged builds
+      // EnvironmentService will be initialized when needed
       // 동기적으로 process.env는 이미 dotenv에 의해 로드됨
       // EnvironmentService.initialize()는 비동기이므로 약간의 지연이 있을 수 있음
       // 하지만 이곳에서 config 객체를 프리페칭하면 성능 최적화됨

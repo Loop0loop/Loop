@@ -2,6 +2,8 @@
 
 // 🔥 Prisma 싱글톤 서비스 - 연결 풀링으로 성능 개선
 import { Logger } from '../../shared/logger';
+import * as fs from 'fs';
+import path from 'path';
 import { Project, ProjectCharacter, ProjectStructure, ProjectNote } from '../../shared/types';
 import { ensureDatabaseUrl } from '../utils/prismaPaths';
 import { safePathJoin } from '../../shared/utils/pathSecurity';
@@ -66,8 +68,7 @@ class PrismaService {
       if (process.env.DEBUG_PRISMA) {
         try {
            
-          const fs = require('fs');
-          const path = require('path');
+          // Use static imports at top-level for fs/path
           const prismaBinPath = path.join(
             __dirname,
             '../../node_modules/.prisma/client'
@@ -84,7 +85,9 @@ class PrismaService {
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('PRISMA_SERVICE', 'Loading Prisma client from @prisma/client');
        
-      const { PrismaClient } = require('@prisma/client');
+      // Use dynamic ESM import to satisfy lint and allow Vite/Electron bundling
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { PrismaClient } = (await import('@prisma/client')) as any;
 
       this.client = new PrismaClient({
         datasources: {

@@ -63,7 +63,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     ...props
   }, ref) => {
 
-    const [focused, setFocused] = useState<boolean>(false);
+    const [_focused, setFocused] = useState<boolean>(false);
     const [charCount, setCharCount] = useState<number>(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -88,8 +88,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     // 문자 수 업데이트
     useEffect(() => {
       if (typeof value === 'string') {
-        setCharCount(value.length);
+        const animation = requestAnimationFrame(() => setCharCount(value.length));
+        return () => cancelAnimationFrame(animation);
       }
+      return undefined;
     }, [value]);
 
     const textareaClassName = cn(

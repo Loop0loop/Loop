@@ -16,11 +16,14 @@ export function useViewMode(defaultMode: ViewMode = 'grid') {
 
   // 초기 로드 - localStorage에서 저장된 값 복원
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'grid' || saved === 'list') {
-      setViewModeState(saved);
-    }
-    setIsLoaded(true);
+    const frame = requestAnimationFrame(() => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'grid' || saved === 'list') {
+        setViewModeState(saved);
+      }
+      setIsLoaded(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   // View Mode 변경 - localStorage에 저장

@@ -1,6 +1,7 @@
 // 🔥 기가차드 Settings Watcher - 설정 변경 감시 통합
 
 import { Logger } from '../../shared/logger';
+import { BrowserWindow, app } from 'electron';
 import { getSettingsManager } from '../settings';
 import type {
   SettingsChangeEvent,
@@ -277,7 +278,6 @@ export class SettingsWatcher {
   private notifyRenderer(event: string, data: Record<string, unknown>): void {
     try {
       // 메인 윈도우로 이벤트 전송
-      const { BrowserWindow } = require('electron');
       const mainWindow = BrowserWindow.getAllWindows()[0];
 
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -293,7 +293,6 @@ export class SettingsWatcher {
    */
   private async updateAutoStart(enabled: boolean): Promise<void> {
     try {
-      const { app } = require('electron');
       app.setLoginItemSettings({
         openAtLogin: enabled,
         path: process.execPath

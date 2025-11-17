@@ -174,9 +174,15 @@ export function setupSettingsIpcHandlers(): void {
         for (const w of allWindows) {
           try {
             w.webContents.send('settings:changed', { keyPath: category || 'all', value: null, reset: true });
-          } catch (e) { }
+          } catch (e) {
+            // ignore per-window failures (still log at debug level)
+            Logger.debug(componentName, 'Failed to send settings to window', { error: e });
+          }
         }
-      } catch (e) { }
+      } catch (e) {
+        // ignore broadcast failure (non-fatal) but record debug info
+        Logger.debug(componentName, 'Failed to broadcast settings reset', { error: e });
+      }
 
       return {
         success: true,

@@ -43,7 +43,7 @@ class LoggerService {
       this.logLevel = LogLevel.DEBUG;
     }
     
-    console.log(`🔥 [LOGGER] Logger initialized - Level: ${LogLevel[this.logLevel]}, NODE_ENV: ${envNodeEnv || 'undefined'}, DEBUG: ${envDebug || 'undefined'}`);
+    console.warn(`🔥 [LOGGER] Logger initialized - Level: ${LogLevel[this.logLevel]}, NODE_ENV: ${envNodeEnv || 'undefined'}, DEBUG: ${envDebug || 'undefined'}`);
   }
 
   setLogLevel(level: LogLevel): void {
@@ -81,19 +81,25 @@ class LoggerService {
     const shouldForceOutput = safeEnvLocal.DEBUG === 'true' || safeEnvLocal.NODE_ENV === 'development';
 
     if (level >= this.logLevel || shouldForceOutput) {
-      switch (level) {
-        case LogLevel.DEBUG:
-          console.debug(`🔍 ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.INFO:
-          console.info(`ℹ️ ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.WARN:
-          console.warn(`⚠️ ${prefix}`, message, verboseMode && data ? data : '');
-          break;
-        case LogLevel.ERROR:
-          console.error(`❌ ${prefix}`, message, data || '');
-          break;
+      const emoji =
+        level === LogLevel.DEBUG
+          ? '🔍'
+          : level === LogLevel.INFO
+          ? 'ℹ️'
+          : level === LogLevel.WARN
+          ? '⚠️'
+          : '❌';
+      const consoleArgs: unknown[] = [`${emoji} ${prefix}`, message];
+      if (verboseMode && data) {
+        consoleArgs.push(data);
+      } else if (level === LogLevel.ERROR && data) {
+        consoleArgs.push(data);
+      }
+
+      if (level === LogLevel.ERROR) {
+        console.error(...consoleArgs);
+      } else {
+        console.warn(...consoleArgs);
       }
     }
   }

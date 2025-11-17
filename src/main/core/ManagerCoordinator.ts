@@ -15,6 +15,9 @@ import { handlersManager } from '../managers/HandlersManager';
 import { sessionManager } from '../managers/SessionManager';
 import { databaseManager } from '../managers/DatabaseManager';
 import { updaterManager } from '../managers/UpdaterManager';
+import { prismaService } from '../services/PrismaService';
+import { databaseService } from '../services/databaseService';
+import { EnvironmentService } from '../services/EnvironmentService';
 
 // 🔥 BrowserDetector 인스턴스 생성
 const browserDetector = new BrowserDetector();
@@ -232,7 +235,6 @@ export class ManagerCoordinator {
    */
   private async initializeEnvironment(): Promise<void> {
     try {
-      const { EnvironmentService } = await import('../services/EnvironmentService');
       await EnvironmentService.initialize();
       this.initializedManagers.add('environment');
       Logger.info(this.componentName, '✅ EnvironmentService 초기화 완료');
@@ -254,7 +256,7 @@ export class ManagerCoordinator {
   private async initializeDatabase(): Promise<void> {
     try {
       // 🔥 Prisma 마이그레이션 먼저 실행 (DB 스키마 동기화)
-      const { prismaService } = await import('../services/PrismaService');
+      // Run Prisma migrations
       try {
         await prismaService.runMigrations();
         Logger.info(this.componentName, '✅ Prisma migrations 실행 완료');
@@ -274,8 +276,8 @@ export class ManagerCoordinator {
 
       // 🔥 databaseService도 초기화 (Analytics API용)
       if (!this.initializedManagers.has('databaseService')) {
-        const { databaseService } = await import('../services/databaseService');
         const result = await databaseService.initialize();
+        
         if (result.success) {
           this.initializedManagers.add('databaseService');
           Logger.info(this.componentName, '✅ databaseService 초기화 완료');

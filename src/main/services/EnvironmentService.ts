@@ -10,7 +10,7 @@ import { Logger } from '../../shared/logger';
 import { keychainAdapter } from '../utils/keychainAdapter';
 import { app } from 'electron';
 import { join, resolve } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { parse } from 'dotenv';
 import Store from 'electron-store';
 
@@ -255,7 +255,7 @@ class EnvironmentServiceClass {
    * 🔥 userData에 .env 템플릿 생성 (Packaged 앱용)
    */
   private createEnvTemplate(): void {
-    const { writeFileSync, mkdirSync } = require('fs');
+    // Use static fs imports - avoid dynamic require
     
     const userDataPath = app.getPath('userData');
     const envPath = join(userDataPath, '.env');

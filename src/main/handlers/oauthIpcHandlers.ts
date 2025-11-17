@@ -1,6 +1,6 @@
 // 🔥 기가차드 OAuth IPC 핸들러 - Google Docs 연동 통신
 
-import { ipcMain, IpcMainInvokeEvent } from 'electron';
+import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 import { Logger } from '../../shared/logger';
 import { IpcResponse } from '../../shared/types';
 import { OAuthService } from '../services/OAuthService';
@@ -54,7 +54,6 @@ export function setupOAuthIpcHandlers(): void {
           await (oauthService as any).openAuthUrlInBrowser?.(authUrl);
         } catch (e) {
           // fallback: shell.openExternal
-          const { shell } = require('electron');
           await shell.openExternal(authUrl);
         }
         return { success: true, data: { authUrl }, timestamp: new Date() };

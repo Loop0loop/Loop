@@ -377,38 +377,46 @@ export function useIntegratedProjectData(projectId: string) {
     }, [processStructureItems]);
 
     useEffect(() => {
-        setLoading(true);
+        let timeoutId: NodeJS.Timeout | undefined;
+        const frame = requestAnimationFrame(() => {
+            setLoading(true);
 
-        Logger.debug('USE_PROJECT_DATA', 'useEffect triggered', {
-            elementsCount: processStructureItems.length,
-            hasAnalysis: !!performAnalysis,
-            projectId
+            Logger.debug('USE_PROJECT_DATA', 'useEffect triggered', {
+                elementsCount: processStructureItems.length,
+                hasAnalysis: !!performAnalysis,
+                projectId
+            });
+
+            Logger.debug('USE_PROJECT_DATA', 'Using real data from store');
+            setElements(processStructureItems);
+            setAnalysis(performAnalysis);
+
+            // 🔥 AI 분석 비동기 실행 (더미 데이터 제거)
+            if (processStructureItems.length > 0) {
+                performAIAnalysis(processStructureItems).then(aiResult => {
+                    if (aiResult) {
+                        Logger.info('USE_PROJECT_DATA', 'AI analysis integrated', { hasAIResult: !!aiResult });
+                        // TODO: AI 분석 결과를 기본 분석과 통합
+                    }
+                });
+            }
+
+            timeoutId = setTimeout(() => {
+                setLoading(false);
+                Logger.info('INTEGRATED_PROJECT_DATA', 'Data processing completed', {
+                    projectId,
+                    elementsCount: processStructureItems.length,
+                    hasAnalysis: !!performAnalysis
+                });
+            }, 300); // 로딩 시간 단축 (더미 데이터 시뮬레이션 제거)
         });
 
-        // 실제 데이터 사용 (mock 데이터 완전 제거)
-        Logger.debug('USE_PROJECT_DATA', 'Using real data from store');
-        setElements(processStructureItems);
-        setAnalysis(performAnalysis);
-
-        // 🔥 AI 분석 비동기 실행 (더미 데이터 제거)
-        if (processStructureItems.length > 0) {
-            performAIAnalysis(processStructureItems).then(aiResult => {
-                if (aiResult) {
-                    Logger.info('USE_PROJECT_DATA', 'AI analysis integrated', { hasAIResult: !!aiResult });
-                    // TODO: AI 분석 결과를 기본 분석과 통합
-                }
-            });
-        }
-
-        // 로딩 완료
-        setTimeout(() => {
-            setLoading(false);
-            Logger.info('INTEGRATED_PROJECT_DATA', 'Data processing completed', {
-                projectId,
-                elementsCount: processStructureItems.length,
-                hasAnalysis: !!performAnalysis
-            });
-        }, 300); // 로딩 시간 단축 (더미 데이터 시뮬레이션 제거)
+        return () => {
+            cancelAnimationFrame(frame);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
     }, [processStructureItems, performAnalysis, projectId]);
 
     return {

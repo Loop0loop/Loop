@@ -79,8 +79,9 @@ export function Tooltip({
   const isControlled = controlledOpen !== undefined;
 
   useEffect(() => {
-    setMounted(true);
+    const animation = requestAnimationFrame(() => setMounted(true));
     return () => {
+      cancelAnimationFrame(animation);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

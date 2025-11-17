@@ -15,6 +15,7 @@ import { setupAppIpcHandlers } from './appIpcHandlers';
 import { setupEpisodeIpcHandlers } from './episodeIpcHandlers';
 import { setupGoogleOAuthIpcHandlers } from './googleOAuthIpcHandlers';
 import { setupGeminiIpcHandlers } from './geminiIpcHandlers';
+import { EnvironmentService } from '../services/EnvironmentService';
 
 // #DEBUG: Handlers index entry point
 Logger.debug('HANDLERS_INDEX', 'Handlers index module loaded');
@@ -157,8 +158,6 @@ export class HandlersManager {
         ]),
         // 🌍 환경 변수 & 설정 핸들러
         this.setupHandler('environment', async () => {
-          const { EnvironmentService } = await import('../services/EnvironmentService');
-          const { ipcMain } = require('electron');
           
           // Gemini API 키 저장
           ipcMain.handle('env:set-gemini-key', async (event: any, apiKey: string) => {

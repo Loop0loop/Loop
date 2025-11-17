@@ -12,6 +12,7 @@ import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동�
 import { getGeminiClient } from '../../shared/ai/geminiClient';
 import { analyzeNarrativeKeywords } from '../../shared/narrative/keywordSets';
 import type { GeminiChatRole, GeminiChatMessageDTO, GeminiChatSessionDTO } from '../../shared/types';
+import { EnvironmentService } from '../services/EnvironmentService';
 
 /**
  * 🔥 프로젝트 컨텍스트 인터페이스
@@ -135,7 +136,6 @@ export function setupGeminiIpcHandlers(): void {
 
   ipcMain.handle('gemini:get-status', async () => {
     try {
-      const { EnvironmentService } = await import('../services/EnvironmentService');
       
       // 🔥 EnvironmentService가 로드되지 않았다면 즉시 초기화
       // (constructor에서 미리 초기화했으므로 이 호출은 빠르게 완료됨)

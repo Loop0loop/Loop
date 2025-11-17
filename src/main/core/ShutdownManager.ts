@@ -5,10 +5,11 @@ import { Logger } from '../../shared/logger';
 import { ManagerCoordinator } from './ManagerCoordinator';
 
 // 🔥 Global 타입 augmentation
+/* eslint-disable no-var */
 declare global {
-   
   var mainWindow: BrowserWindow | null | undefined;
 }
+/* eslint-enable no-var */
 
 /**
  * 🔥 ShutdownManager - 앱 종료 프로세스 전담

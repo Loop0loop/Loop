@@ -2,12 +2,9 @@
 
 // 🔥 1단계: 환경변수 우선 로드 (DevMode)
 import 'dotenv/config';
-
-// 🔥 2단계: Packaged 상태에서 Runtime .env 재로드
-// 빌드타임 define은 고정되므로, runtime에 명시적으로 .env를 다시 로드해야 함
-const { parse } = require('dotenv');
-const { existsSync, readFileSync } = require('fs');
-const { join: pathJoin, resolve: pathResolve } = require('path');
+import { parse } from 'dotenv';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 function reloadEnvForPackaged(): void {
   // 현재 NODE_ENV 확인 (dev라면 스킵)
@@ -15,10 +12,10 @@ function reloadEnvForPackaged(): void {
   
   // .env 파일 찾기
   const candidates = [
-    pathJoin(process.cwd(), '.env'),
-    pathJoin(process.cwd(), '..', '.env'),
-    pathJoin(__dirname, '..', '.env'),
-    pathJoin(__dirname, '..', '..', '.env'),
+    join(process.cwd(), '.env'),
+    join(process.cwd(), '..', '.env'),
+    join(__dirname, '..', '.env'),
+    join(__dirname, '..', '..', '.env'),
   ];
 
   for (const candidate of candidates) {
@@ -30,7 +27,7 @@ function reloadEnvForPackaged(): void {
         // 🔥 buildtime define이 빈 값이면, runtime에서 .env로부터 로드
         if (!process.env.GEMINI_API_KEY && parsed.GEMINI_API_KEY) {
           Reflect.set(process.env as Record<string, unknown>, 'GEMINI_API_KEY', parsed.GEMINI_API_KEY);
-          console.log('✅ [RUNTIME] GEMINI_API_KEY reloaded from', candidate);
+          Logger.info('MAIN', '✅ [RUNTIME] GEMINI_API_KEY reloaded from', { path: candidate });
         }
         if (!process.env.GEMINI_MODEL && parsed.GEMINI_MODEL) {
           Reflect.set(process.env as Record<string, unknown>, 'GEMINI_MODEL', parsed.GEMINI_MODEL);
@@ -63,15 +60,14 @@ if (isPackaged && process.env.NODE_ENV !== 'development') {
 
 // 🔥 DEBUG: dotenv 로드 직후 환경변수 확인
 if (process.env.GEMINI_API_KEY) {
-  console.log('✅ [DOTENV] GEMINI_API_KEY loaded:', `***${process.env.GEMINI_API_KEY.slice(-8)}`);
+  Logger.info('DOTENV', 'GEMINI_API_KEY loaded', { preview: `***${process.env.GEMINI_API_KEY.slice(-8)}` });
 } else {
-  console.log('❌ [DOTENV] GEMINI_API_KEY is missing after dotenv/config import');
+  Logger.warn('DOTENV', 'GEMINI_API_KEY is missing after dotenv/config import');
 }
-console.log('ℹ️  [DOTENV] NODE_ENV:', process.env.NODE_ENV);
+Logger.info('DOTENV', 'NODE_ENV', { NODE_ENV: process.env.NODE_ENV });
 
 import "./core/security"
 import { app, protocol } from 'electron';
-import { join } from 'path';
 import { Logger } from '../shared/logger';
 import { ApplicationBootstrapper } from './core/ApplicationBootstrapper';
 import { performanceOptimizer } from './core/PerformanceOptimizer';
