@@ -41,7 +41,7 @@ export const UISettingsSection = React.memo<UISettingsSectionProps>(({
 
   // 🔥 토글 핸들러들
   const handleSidebarCollapsedToggle = useCallback((checked: boolean) => {
-    updateSetting('ui', 'sidebarCollapsed', checked);
+    updateSetting('ui', 'appSidebarCollapsed', checked);
   }, [updateSetting]);
 
   const handleShowLineNumbersToggle = useCallback((checked: boolean) => {
@@ -94,11 +94,11 @@ export const UISettingsSection = React.memo<UISettingsSectionProps>(({
           />
 
           <SettingItem
-            title="사이드바 접기"
-            description="앱 시작 시 사이드바를 접힌 상태로 표시합니다"
+            title="앱 사이드바 축소"
+            description="앱 전체 레이아웃에서 사이드바를 접힌 상태로 시작합니다"
             control={
               <Toggle
-                checked={settings.sidebarCollapsed}
+                checked={settings.appSidebarCollapsed}
                 onChange={handleSidebarCollapsedToggle}
               />
             }
