@@ -94,8 +94,8 @@ export const UISettingsSection = React.memo<UISettingsSectionProps>(({
           />
 
           <SettingItem
-            title="앱 사이드바 축소"
-            description="앱 전체 레이아웃에서 사이드바를 접힌 상태로 시작합니다"
+            title="앱 사이드바 숨기기"
+            description="앱 전체 레이아웃에서 사이드바를 숨긴 상태로 시작합니다"
             control={
               <Toggle
                 checked={settings.appSidebarCollapsed}
