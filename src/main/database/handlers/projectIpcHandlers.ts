@@ -7,8 +7,8 @@
 import { registerProjectCrudHandlers } from './projectCrudHandlers';
 import { registerCharacterHandlers } from './characterHandlers';
 import { registerStructureHandlers } from '../../handlers/structureHandlers';
-import { registerNoteHandlers } from './noteHandlers';
-import { registerIdeaHandlers } from './ideaHandlers';
+import { registerNoteHandlers } from './notes';
+import { registerIdeaHandlers } from './ideas';
 import { registerShellHandlers } from '../../handlers/shellHandlers';
 import { Logger } from '../../../shared/logger';
 

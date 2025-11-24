@@ -1,13 +1,13 @@
-// Handlers barrel file — 재수출(aggregate exports)
-// 목적: 단일 import 진입점 제공, 모듈 응집도 향상 및 리팩토링 준비
-
 export * from './projectCrudHandlers';
 export * from './projectIpcHandlers';
 export * from './characterHandlers';
+export * from './characters';
 export * from './dashboardIpcHandlers';
+export * from './dashboard';
+export * from './episodes';
 export * from './episodeIpcHandlers';
-export * from './ideaHandlers';
-export * from './noteHandlers';
+export * from './ideas';
+export * from './notes';
 export * from './synopsis-stats';
 export * from './projects';
 
