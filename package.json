@@ -52,7 +52,7 @@
     "publish": "pnpm build && electron-builder --publish=always",
     "clean": "rimraf out node_modules/.cache",
     "clean:all": "rimraf out node_modules",
-    "postinstall": "electron-builder install-app-deps && pnpm db:generate",
+    "postinstall": "node ./scripts/postinstall-rebuild.js && pnpm db:generate",
     "rebuild:native": "bash ./scripts/rebuild-native.sh",
     "rebuild:native:all": "bash ./scripts/rebuild-native.sh --all",
     "debug:main": "cross-env NODE_ENV=development electron --inspect=5858 .",
@@ -159,7 +159,9 @@
   "pnpm": {
     "overrides": {
       "@types/react": "^19.0.0",
-      "@types/react-dom": "^19.0.0"
+      "@types/react-dom": "^19.0.0",
+      "@prisma/adapter-better-sqlite3>better-sqlite3": "12.4.6",
+      "better-sqlite3": "12.4.6"
     },
     "ignoredBuiltDependencies": [
       "unrs-resolver"
@@ -182,5 +184,6 @@
       "sharp",
       "spectron"
     ]
+  
   }
 }
