@@ -19,9 +19,6 @@ import type {
 } from './data-sync/types';
 
 import {
-  hasConflict,
-  determineConflictType,
-  mergeItems,
   uploadLocalChanges,
   downloadRemoteChanges,
   updateAverageSyncTime as engineUpdateAverageSyncTime,
@@ -34,6 +31,7 @@ import {
 } from './data-sync/engine';
 
 import { ensureDataDirectory, loadSyncState as storageLoadState, saveSyncState as storageSaveState, cleanupOldBackups } from './data-sync/storage';
+import { detectConflicts, resolveConflicts } from './data-sync/resolver';
 
 // #DEBUG: Data sync manager entry point
 Logger.debug('DATA_SYNC', 'Data sync manager module loaded');
@@ -248,63 +246,18 @@ export class DataSyncManager extends BaseManager {
       return;
     }
 
-    const startTime = Date.now();
     this.currentStatus = 'syncing';
-    this.syncStats.totalSyncs++;
-
     try {
-      Logger.debug(this.componentName, 'Starting sync operation');
-
-      // 로컬 변경사항 수집
-      const localChanges = await engineCollectLocalChanges();
-      
-      // 원격 변경사항 가져오기
-      const remoteChanges = await engineFetchRemoteChanges();
-      
-      // 충돌 감지 및 해결
-      // 충돌 감지
-      const conflicts = localChanges.flatMap((local) => {
-        const remote = remoteChanges.find((r) => r.id === local.id);
-        if (remote && hasConflict(local, remote)) {
-          return [{
-            id: `conflict_${local.id}_${Date.now()}`,
-            localItem: local,
-            remoteItem: remote,
-            conflictType: determineConflictType(local, remote),
-          } as SyncConflict];
-        }
-        return [] as SyncConflict[];
-      });
-      if (conflicts.length > 0) {
-        await this.resolveConflicts(conflicts);
+      const { runSyncOperation } = await import('./data-sync/runner');
+      const result = await runSyncOperation(this.syncConfig, this.syncStats, this.conflictQueue, this.syncLogs);
+      if (result.success) {
+        this.logSyncOperation('upload', 'success', 'Sync completed successfully');
+      } else {
+        this.logSyncOperation('upload', 'failed', `Sync failed: ${result.error}`);
       }
-
-      // 데이터 업로드
-      await uploadLocalChanges(localChanges, this.syncConfig);
-
-      // 데이터 다운로드
-      await downloadRemoteChanges(remoteChanges, this.syncConfig);
-
-      this.syncStats.successfulSyncs++;
-      this.syncStats.lastSyncTime = new Date();
-      
-      const syncTime = Date.now() - startTime;
-      engineUpdateAverageSyncTime(this.syncStats, syncTime);
-
-      this.logSyncOperation('upload', 'success', 'Sync completed successfully');
-      
-      Logger.info(this.componentName, 'Sync completed successfully', {
-        duration: syncTime,
-        localChanges: localChanges.length,
-        remoteChanges: remoteChanges.length,
-        conflicts: conflicts.length,
-      });
-
-    } catch (error) {
-      this.syncStats.failedSyncs++;
-      this.logSyncOperation('upload', 'failed', 'Sync failed', error as Error);
-      
-      Logger.error(this.componentName, 'Sync operation failed', error);
+    } catch (err) {
+      this.logSyncOperation('upload', 'failed', 'Sync failed', err as Error);
+      Logger.error(this.componentName, 'Sync operation failed', err);
     } finally {
       this.currentStatus = 'idle';
     }
@@ -328,45 +281,7 @@ export class DataSyncManager extends BaseManager {
    * 충돌 감지
    */
 
-  /**
-   * 충돌 해결
-   */
-  private async resolveConflicts(conflicts: SyncConflict[]): Promise<void> {
-    for (const conflict of conflicts) {
-      await this.resolveConflict(conflict);
-    }
-  }
-
-  /**
-   * 개별 충돌 해결
-   */
-  private async resolveConflict(conflict: SyncConflict): Promise<void> {
-    const strategy = this.syncConfig.defaultConflictResolution;
-    
-    switch (strategy) {
-      case 'local':
-        conflict.resolvedItem = conflict.localItem;
-        break;
-      case 'remote':
-        conflict.resolvedItem = conflict.remoteItem;
-        break;
-      case 'merge':
-        conflict.resolvedItem = await mergeItems(conflict.localItem, conflict.remoteItem);
-        break;
-      case 'manual':
-        this.conflictQueue.push(conflict);
-        return;
-    }
-    
-    conflict.resolution = strategy;
-    this.syncStats.conflictsResolved++;
-    
-    Logger.debug(this.componentName, 'Conflict resolved', {
-      conflictId: conflict.id,
-      strategy,
-      itemId: conflict.localItem.id,
-    });
-  }
+  // conflict detection and resolution delegated to data-sync/resolver.ts
 
   /**
    * 항목 병합
@@ -403,42 +318,14 @@ export class DataSyncManager extends BaseManager {
   private async performBackup(): Promise<void> {
     try {
       Logger.debug(this.componentName, 'Starting backup operation');
+      const { performBackupOperation } = await import('./data-sync/backup');
 
-      const backupId = `backup_${Date.now()}`;
-      const backupPath = join(this.dataDirectory, 'backups', `${backupId}.json`);
-      
-      // 모든 데이터 수집
-      const allData = await engineCollectAllData();
+      const { backupInfo, backupHistory } = await performBackupOperation(this.dataDirectory, this.syncConfig, this.backupHistory, this.syncStats, this.syncConfig.maxBackups);
+      this.backupHistory = backupHistory;
 
-      // 압축 및 암호화 (설정에 따라)
-      const processedData = await engineProcessBackupData(allData, this.syncConfig);
-
-      // 백업 파일 생성
-      await fs.writeFile(backupPath, JSON.stringify(processedData));
-      
-      const backupInfo: BackupInfo = {
-        id: backupId,
-        timestamp: new Date(),
-        size: (await fs.stat(backupPath)).size,
-        itemCount: allData.length,
-        provider: this.syncConfig.provider,
-        filePath: backupPath,
-        checksum: this.generateChecksum(JSON.stringify(processedData)),
-        isAutomatic: true,
-      };
-      
-      this.backupHistory.push(backupInfo);
-      
-      // 오래된 백업 정리
-      this.backupHistory = await cleanupOldBackups(this.backupHistory, this.syncConfig.maxBackups);
-      
       this.logSyncOperation('upload', 'success', 'Backup completed successfully');
-      
-      Logger.info(this.componentName, 'Backup completed successfully', {
-        backupId,
-        size: backupInfo.size,
-        itemCount: backupInfo.itemCount,
-      });
+
+      Logger.info(this.componentName, 'Backup completed successfully', { id: backupInfo.id, size: backupInfo.size, itemCount: backupInfo.itemCount });
 
     } catch (error) {
       this.logSyncOperation('upload', 'failed', 'Backup failed', error as Error);
@@ -579,19 +466,13 @@ export class DataSyncManager extends BaseManager {
    */
   public async restoreFromBackup(backupId: string): Promise<Result<void>> {
     try {
-      const backup = this.backupHistory.find(b => b.id === backupId);
-      if (!backup) {
-        return { success: false, error: 'Backup not found' };
-      }
+      const { restoreFromBackupOperation } = await import('./data-sync/backup');
+      await restoreFromBackupOperation(backupId, this.backupHistory);
 
-      const backupData = await fs.readFile(backup.filePath, 'utf-8');
-      const parsedData = JSON.parse(backupData);
-      
-      // 실제 구현에서는 데이터 복원 로직 필요
-      
+      // TODO: apply parsed data to DB - currently stubbed
       this.logSyncOperation('download', 'success', `Restored from backup ${backupId}`);
-      
       Logger.info(this.componentName, 'Backup restored successfully', { backupId });
+
       return { success: true };
     } catch (error) {
       const err = error as Error;
