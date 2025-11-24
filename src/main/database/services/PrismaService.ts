@@ -9,6 +9,8 @@ import { safePathJoin } from '../../../shared/utils/pathSecurity';
 // PrismaClient 타입 정의 (런타임에 동적 로드)
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
 import type { PrismaBetterSqlite3 as PrismaBetterSqlite3Factory } from '@prisma/adapter-better-sqlite3';
+import { loadBetterSqliteAdapter } from '../adapters/betterSqliteAdapter';
+import { createPrismaClient } from '../prismaClientFactory';
 
 // 🔥 트랜잭션 클라이언트 타입 정의
 type TransactionClient = Omit<PrismaClientType, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
@@ -99,27 +101,13 @@ class PrismaService {
       const { PrismaClient } = PrismaPkg;
 
       // Prisma 7 SQLite: Must use better-sqlite3 adapter for Electron
-      // The adapter is required because Prisma's Rust engine is not available
-      // adapter factory type (runtime-free import for typing)
-      let adapter: PrismaBetterSqlite3Factory | null = null;
-      try {
-        const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-        adapter = new PrismaBetterSqlite3({ url: databaseUrl });
-        Logger.debug('PRISMA_SERVICE', 'better-sqlite3 adapter loaded successfully', { dbPath });
-      } catch (adapterErr) {
-        Logger.error('PRISMA_SERVICE', 'Failed to load better-sqlite3 adapter', adapterErr);
-        throw new Error(
-          'better-sqlite3 adapter required for Prisma 7 SQLite in Electron. ' +
-          'Run: pnpm install @prisma/adapter-better-sqlite3 better-sqlite3'
-        );
-      }
+      // Adapter loading and client creation are delegated to small factories (testable, isolated)
+      const adapter = await loadBetterSqliteAdapter(databaseUrl) as PrismaBetterSqlite3Factory;
 
-      // Create Prisma client with adapter
-      // Prisma client type is imported as a runtime-free type; the runtime value is created dynamically
-      this.client = new PrismaClient({
-        adapter,
-        log: ['error', 'warn'],
-      }) as unknown as PrismaClientType;
+      // Create Prisma client via factory
+      // The created client may be a runtime object and we cast to the type used across the app
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.client = createPrismaClient(adapter) as unknown as PrismaClientType;
 
       Logger.info('PRISMA_SERVICE', '✅ Prisma client created successfully with better-sqlite3 adapter');
 
@@ -224,8 +212,14 @@ class PrismaService {
           progress: projectData.project.progress || 0,
           lastModified: new Date(),
         },
-        // TODO: map Project -> Prisma ProjectCreateInput explicitly for type safety
-        create: projectData.project as unknown as any,
+        create: {
+          id: projectData.project.id,
+          title: projectData.project.title,
+          content: projectData.project.content ?? null,
+          wordCount: projectData.project.wordCount ?? 0,
+          progress: projectData.project.progress ?? 0,
+          lastModified: projectData.project.lastModified ? new Date(projectData.project.lastModified) : new Date(),
+        } as any,
       });
 
       // 캐릭터 정보 저장 (있는 경우)
@@ -233,8 +227,18 @@ class PrismaService {
         for (const character of projectData.characters) {
           await tx.projectCharacter.upsert({
             where: { id: character.id },
-            update: character as unknown as any,
-            create: { ...(character as any), projectId: project.id } as any,
+            update: {
+              name: character.name,
+              description: character.description ?? null,
+              role: character.role ?? '',
+            } as any,
+            create: {
+              id: character.id,
+              name: character.name,
+              description: character.description ?? null,
+              role: character.role ?? '',
+              projectId: project.id,
+            } as any,
           });
         }
       }
@@ -244,8 +248,24 @@ class PrismaService {
         for (const structureItem of projectData.structure) {
           await tx.projectStructure.upsert({
             where: { id: structureItem.id },
-            update: structureItem as unknown as any,
-            create: { ...(structureItem as any), projectId: project.id } as any,
+            update: {
+              title: structureItem.title,
+              content: structureItem.content ?? null,
+              description: structureItem.description ?? null,
+              status: (structureItem as any).status ?? 'draft',
+            } as any,
+            create: {
+              id: structureItem.id,
+              projectId: project.id,
+              type: structureItem.type,
+              title: structureItem.title,
+              description: structureItem.description ?? null,
+              content: structureItem.content ?? null,
+              status: (structureItem as any).status ?? 'draft',
+              wordCount: (structureItem as any).wordCount ?? 0,
+              sortOrder: (structureItem as any).sortOrder ?? 0,
+              parentId: (structureItem as any).parentId ?? null,
+            } as any,
           });
         }
       }
@@ -255,8 +275,20 @@ class PrismaService {
         for (const note of projectData.notes) {
           await tx.projectNote.upsert({
             where: { id: note.id },
-            update: note as unknown as any,
-            create: { ...(note as any), projectId: project.id } as any,
+            update: {
+              title: note.title,
+              content: note.content ?? '',
+              type: (note as any).type ?? 'note',
+              tags: (note as any).tags ?? null,
+            } as any,
+            create: {
+              id: note.id,
+              projectId: project.id,
+              title: note.title,
+              content: note.content ?? '',
+              type: (note as any).type ?? 'note',
+              tags: (note as any).tags ?? null,
+            } as any,
           });
         }
       }

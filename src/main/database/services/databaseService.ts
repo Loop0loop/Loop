@@ -683,36 +683,16 @@ export class DatabaseService {
 
   // 🔥 프로젝트 데이터 가져오기 (새로 추가)
   public async getProjectsData(): Promise<Result<any[]>> {
+    // Delegate to new ProjectService so database concerns are modular
     try {
       if (!this.ensureConnection()) {
         throw new Error('Database not connected');
       }
 
-      Logger.debug('DATABASE', 'Getting projects data');
-
-      // 🎯 실제 Prisma 쿼리 사용
-      const projects = await this.prisma!.project.findMany({
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          genre: true,
-          status: true,
-          progress: true,
-          wordCount: true,
-          author: true,
-          createdAt: true,
-          lastModified: true
-        },
-        orderBy: {
-          lastModified: 'desc'
-        }
-      });
-
-      return createSuccess(projects);
-
+      const { projectService } = await import('./projectService');
+      return projectService.getProjectsData();
     } catch (error) {
-      Logger.error('DATABASE', 'Failed to get projects data', error);
+      Logger.error('DATABASE', 'Failed to get projects data (delegation)', error);
       return createError(error instanceof Error ? error.message : 'Failed to get projects');
     }
   }
@@ -724,39 +704,10 @@ export class DatabaseService {
         throw new Error('Database not connected');
       }
 
-      Logger.debug('DATABASE', 'Getting characters data');
-
-      // 🎯 실제 Prisma 쿼리 사용
-      const characters = await this.prisma!.projectCharacter.findMany({
-        select: {
-          id: true,
-          name: true,
-          role: true,
-          description: true,
-          personality: true,
-          background: true,
-          avatar: true,
-          color: true,
-          createdAt: true,
-          project: {
-            select: {
-              title: true,
-              genre: true
-            }
-          }
-        },
-        where: {
-          isActive: true
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-
-      return createSuccess(characters);
-
+      const { projectService } = await import('./projectService');
+      return projectService.getCharactersData();
     } catch (error) {
-      Logger.error('DATABASE', 'Failed to get characters data', error);
+      Logger.error('DATABASE', 'Failed to get characters data (delegation)', error);
       return createError(error instanceof Error ? error.message : 'Failed to get characters');
     }
   }
