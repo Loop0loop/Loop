@@ -60,6 +60,7 @@ import { existsSync, copyFileSync, statSync, mkdirSync, readFileSync } from 'fs'
 import { promises as fsPromises } from 'fs';
 import { join, dirname } from 'path';
 import { createHash } from 'crypto';
+import { createBackup as performCreateBackup, type BackupInfo as BackupInfoType } from './database-backup';
 import { app } from 'electron';
 
 // #DEBUG: Database manager entry point
@@ -85,13 +86,8 @@ export interface DatabaseStats {
 }
 
 // 🔥 기가차드 데이터베이스 백업 정보
-export interface BackupInfo {
-  id: string;
-  path: string;
-  size: number;
-  created: Date;
-  checksum: string;
-}
+// BackupInfo is defined in database-backup.ts
+export type BackupInfo = BackupInfoType;
 
 /**
  * 🔥 DatabaseManager - Prisma 기반 데이터베이스 관리
@@ -483,55 +479,9 @@ export class DatabaseManager extends BaseManager {
    */
   public async createBackup(): Promise<Result<BackupInfo>> {
     try {
-      // 백업 디렉토리 생성
       const userDataPath = app.getPath('userData');
-      const backupDir = join(userDataPath, 'backups');
-      
-      try {
-        await fsPromises.access(backupDir);
-      } catch {
-        await fsPromises.mkdir(backupDir, { recursive: true });
-      }
-
-      // 데이터베이스 파일 경로 (SQLite 파일 경로를 가정)
-      const dbPath = join(userDataPath, 'database.db');
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupFileName = `loop_backup_${timestamp}.db`;
-      const backupPath = join(backupDir, backupFileName);
-
-      // 데이터베이스 파일이 존재하는지 확인
-      try {
-        await fsPromises.access(dbPath);
-      } catch {
-        Logger.warn(this.componentName, 'Database file not found for backup', { dbPath });
-        return { 
-          success: false, 
-          error: 'Database file not found' 
-        };
-      }
-
-      // 파일 복사
-      await fsPromises.copyFile(dbPath, backupPath);
-
-      // 백업 파일 정보 수집
-      const stats = await fsPromises.stat(backupPath);
-      const backupData = await fsPromises.readFile(backupPath);
-      const checksum = createHash('sha256').update(backupData).digest('hex');
-
-      const backupInfo: BackupInfo = {
-        id: `backup_${Date.now()}`,
-        path: backupPath,
-        size: stats.size,
-        created: new Date(),
-        checksum: checksum,
-      };
-
-      Logger.info(this.componentName, 'Database backup created successfully', {
-        path: backupPath,
-        size: stats.size,
-        checksum: checksum.substring(0, 8),
-      });
-
+      const backupInfo = await performCreateBackup(userDataPath);
+      Logger.info(this.componentName, 'Database backup created successfully', { path: backupInfo.path, size: backupInfo.size, checksum: backupInfo.checksum.substring(0, 8) });
       return { success: true, data: backupInfo };
     } catch (error) {
       Logger.error(this.componentName, 'Failed to create backup', error);

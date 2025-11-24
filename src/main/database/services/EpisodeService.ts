@@ -21,6 +21,7 @@ import type {
 import type { PlatformType } from '../../../shared/constants/platform-requirements';
 import { calculateWordCount } from '../../../shared/utils/text';
 import { recordDailyWritingActivity } from '../utils/writingActivity';
+import { toPrismaEpisode, calculateActRanges, getActName, getActDescription, getEmptyFiveActAnalysis } from './episode-utils';
 
 /**
  * 🔥 Episode Service Class (메인 프로세스용)
@@ -417,7 +418,7 @@ export class EpisodeService {
    * 회차를 5막 구조에 매핑
    */
   mapEpisodeToAct(episodeNumber: number, totalEpisodes: number): FiveActType {
-    const ranges = this.calculateActRanges(totalEpisodes);
+    const ranges = calculateActRanges(totalEpisodes);
 
     for (const [act, range] of Object.entries(ranges)) {
       if (episodeNumber >= range.start && episodeNumber <= range.end) {
@@ -431,76 +432,22 @@ export class EpisodeService {
   // ===== PRIVATE METHODS =====
 
   private toPrismaEpisode(prismaEpisode: PrismaEpisodeModel): Episode {
-    return {
-      id: prismaEpisode.id,
-      projectId: prismaEpisode.projectId,
-      episodeNumber: prismaEpisode.episodeNumber,
-      title: prismaEpisode.title,
-      content: prismaEpisode.content,
-      wordCount: prismaEpisode.wordCount,
-      targetWordCount: prismaEpisode.targetWordCount,
-      status: prismaEpisode.status as EpisodeStatus,
-      act: prismaEpisode.act as FiveActType | null,
-      cliffhangerType: prismaEpisode.cliffhangerType as Episode['cliffhangerType'],
-      cliffhangerIntensity: prismaEpisode.cliffhangerIntensity,
-      notes: prismaEpisode.notes,
-      platform: (prismaEpisode as any).platform as PlatformType | null,
-      sortOrder: prismaEpisode.sortOrder,
-      isActive: prismaEpisode.isActive,
-      createdAt: prismaEpisode.createdAt,
-      updatedAt: prismaEpisode.updatedAt,
-      publishedAt: prismaEpisode.publishedAt,
-    };
+    return toPrismaEpisode(prismaEpisode as any as PrismaEpisodeModel);
   }
 
   private calculateActRanges(totalEpisodes: number) {
-    // 5막 구조 비율: 도입(10%) → 발단(20%) → 전개(30%) → 절정(25%) → 결말(15%)
-    const ranges = {
-      introduction: { start: 1, end: Math.ceil(totalEpisodes * 0.1), targetPercentage: 10 },
-      rising: { start: Math.ceil(totalEpisodes * 0.1) + 1, end: Math.ceil(totalEpisodes * 0.3), targetPercentage: 20 },
-      development: { start: Math.ceil(totalEpisodes * 0.3) + 1, end: Math.ceil(totalEpisodes * 0.6), targetPercentage: 30 },
-      climax: { start: Math.ceil(totalEpisodes * 0.6) + 1, end: Math.ceil(totalEpisodes * 0.85), targetPercentage: 25 },
-      conclusion: { start: Math.ceil(totalEpisodes * 0.85) + 1, end: totalEpisodes, targetPercentage: 15 },
-    };
-
-    return ranges;
+    return calculateActRanges(totalEpisodes);
   }
 
   private getActName(act: FiveActType): string {
-    const names = {
-      introduction: '도입',
-      rising: '발단',
-      development: '전개',
-      climax: '절정',
-      conclusion: '결말',
-    };
-    return names[act];
+    return getActName(act);
   }
 
   private getActDescription(act: FiveActType): string {
-    const descriptions = {
-      introduction: '독자를 끌어들이고 세계관을 설정하는 부분',
-      rising: '갈등이 시작되고 주인공이 도전에 직면하는 부분',
-      development: '갈등이 심화되고 복잡해지는 부분',
-      climax: '갈등이 최고조에 달하는 부분',
-      conclusion: '갈등이 해결되고 이야기가 마무리되는 부분',
-    };
-    return descriptions[act];
+    return getActDescription(act);
   }
 
   private getEmptyFiveActAnalysis(): FiveActAnalysis[] {
-    const acts: FiveActType[] = ['introduction', 'rising', 'development', 'climax', 'conclusion'];
-
-    return acts.map(act => ({
-      act,
-      name: this.getActName(act),
-      description: this.getActDescription(act),
-      targetPercentage: 0,
-      currentPercentage: 0,
-      targetWordCount: 0,
-      currentWordCount: 0,
-      episodes: [],
-      isComplete: false,
-    }));
+    return getEmptyFiveActAnalysis();
   }
 }

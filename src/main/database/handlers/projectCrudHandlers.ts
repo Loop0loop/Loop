@@ -16,6 +16,7 @@ import {
   type StructureStatus,
 } from '../../../shared/constants/enums';
 import { prismaService } from '../services/PrismaService';
+import { projectService } from '../services/projectService';
 import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../../shared/validation/projectValidation';
 import { globalRateLimiter, channelLimiters } from '../../services/RateLimiterService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
@@ -304,85 +305,29 @@ export function registerProjectCrudHandlers(): void {
         throw new Error('프로젝트 제목은 필수입니다.');
       }
 
-      // 🔥 Prisma를 통한 실제 DB 생성
-      const prisma = await prismaService.getClient();
+      // Delegate DB create logic to ProjectService
+      const created = await projectService.createProject(validatedProject);
+      if (!created.success) throw new Error(created.error || 'Failed to create project');
 
-      try {
-        // 🔒 동시성 제어: SQLite 동시 쓰기 제한으로 인한 SQLITE_BUSY 에러 방지
-        // 💎 트랜잭션: 프로젝트 + 기본 캐릭터를 원자성 보장
-        const createdProject = await databaseMutex.acquireWriteLock(async () => {
-          const now = new Date();
+      const createdProject = created.data as any;
+      const newProject: Project = {
+        id: createdProject.id,
+        title: createdProject.title,
+        description: createdProject.description || '',
+        content: createdProject.content || '',
+        progress: createdProject.progress || 0,
+        wordCount: createdProject.wordCount || 0,
+        genre: createdProject.genre || 'unknown',
+        status: createdProject.status || 'active',
+        author: createdProject.author || '사용자',
+        createdAt: createdProject.createdAt,
+        lastModified: createdProject.lastModified,
+        updatedAt: createdProject.lastModified,
+      };
 
-          return await prisma.$transaction(async (tx: any) => {
-            // Step 1: 프로젝트 생성
-            const project = await tx.project.create({
-              data: {
-                title: validatedProject.title.trim(),
-                description: validatedProject.description?.trim() || '새로운 프로젝트입니다.',
-                content: validatedProject.content || '',
-                progress: 0,
-                wordCount: validatedProject.content ? validatedProject.content.split(/\s+/).filter((w: string) => w.length > 0).length : 0,
-                genre: validatedProject.genre || 'unknown',
-                status: validatedProject.status || 'active',
-                author: validatedProject.author || '사용자',
-                createdAt: now,
-                lastModified: now,
-              }
-            });
+      Logger.info('PROJECT_CRUD_IPC', '✅ Project created successfully in DB', { id: newProject.id, title: newProject.title, wordCount: newProject.wordCount });
 
-            // Step 2: 기본 캐릭터 생성 (주인공)
-            try {
-              await tx.projectCharacter.create({
-                data: {
-                  id: `char_${project.id}_main`,
-                  projectId: project.id,
-                  name: '주인공',
-                  role: 'protagonist',
-                  description: '프로젝트의 주요 캐릭터입니다.',
-                  isActive: true,
-                  createdAt: now,
-                  updatedAt: now,
-                }
-              });
-            } catch (charError) {
-              Logger.warn('PROJECT_CRUD_IPC', 'Failed to create default character, continuing without it', { projectId: project.id });
-            }
-
-            return project;
-            // ✅ 트랜잭션 커밋: 프로젝트 + 캐릭터 모두 저장
-            // ❌ 에러 발생 시: 전체 롤백
-          });
-        });
-
-        const newProject: Project = {
-          id: createdProject.id,
-          title: createdProject.title,
-          description: createdProject.description || '',
-          content: createdProject.content || '',
-          progress: createdProject.progress || 0,
-          wordCount: createdProject.wordCount || 0,
-          genre: createdProject.genre || 'unknown',
-          status: createdProject.status || 'active',
-          author: createdProject.author || '사용자',
-          createdAt: createdProject.createdAt,
-          lastModified: createdProject.lastModified,
-          updatedAt: createdProject.lastModified, // 🔥 lastModified를 updatedAt으로 사용
-        };
-
-        Logger.info('PROJECT_CRUD_IPC', '✅ Project created successfully in DB', {
-          id: newProject.id,
-          title: newProject.title,
-          wordCount: newProject.wordCount
-        });
-
-        return {
-          success: true,
-          data: newProject,
-          timestamp: new Date(),
-        };
-      } finally {
-        await prisma.$disconnect();
-      }
+      return { success: true, data: newProject, timestamp: new Date() };
     } catch (error) {
       Logger.error('PROJECT_CRUD_IPC', '❌ Failed to create project in DB', error);
       return {
@@ -437,7 +382,8 @@ export function registerProjectCrudHandlers(): void {
         throw new Error(`입력값 검증 실패: ${errorMessage}`);
       }
 
-      const prisma = await prismaService.getClient();
+      // delegate DB update to ProjectService
+      // const prisma = await prismaService.getClient();
 
       const updateData: Partial<{
         title: string;
@@ -473,13 +419,10 @@ export function registerProjectCrudHandlers(): void {
         chaptersPreview: updateData.chapters?.substring(0, 100)
       });
 
-      // 🔥 즉시 저장 - 동시성 제어로 SQLITE_BUSY 방지
-      const updatedProject = await databaseMutex.acquireWriteLock(async () => {
-        return await prisma.project.update({
-          where: { id },
-          data: updateData
-        });
-      });
+      const updateResult = await projectService.updateProject(id, validatedUpdates);
+      if (!updateResult.success) throw new Error(updateResult.error || 'Failed to update project');
+
+      const updatedProject = updateResult.data as any;
 
       const convertedProject: Project = {
         id: updatedProject.id,
@@ -525,25 +468,17 @@ export function registerProjectCrudHandlers(): void {
     try {
       Logger.debug('PROJECT_CRUD_IPC', 'Deleting project from DB', { id });
 
-      const result = await databaseMutex.acquireWriteLock(async () => {
-        const prisma = await prismaService.getClient();
+      const result = await projectService.deleteProject(id);
 
-        try {
-          await prisma.project.delete({
-            where: { id }
-          });
+      if (!result.success) throw new Error(result.error || 'Failed to delete project');
 
-          Logger.info('PROJECT_CRUD_IPC', '✅ Project deleted successfully', { id });
+      Logger.info('PROJECT_CRUD_IPC', '✅ Project deleted successfully', { id });
 
-          return true;
-        } finally {
-          await prisma.$disconnect();
-        }
-      });
+      // result.data is boolean
 
       return {
         success: true,
-        data: result,
+        data: result.data,
         timestamp: new Date(),
       };
     } catch (error) {

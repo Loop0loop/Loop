@@ -8,87 +8,37 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { app } from 'electron';
 
+import type {
+  SyncDataItem,
+  SyncConflict,
+  SyncLog,
+  BackupInfo,
+  DataSyncConfig,
+  SyncStats,
+  SyncStatus,
+} from './data-sync/types';
+
+import {
+  hasConflict,
+  determineConflictType,
+  mergeItems,
+  uploadLocalChanges,
+  downloadRemoteChanges,
+  updateAverageSyncTime as engineUpdateAverageSyncTime,
+  generateChecksum,
+  collectLocalChanges as engineCollectLocalChanges,
+  fetchRemoteChanges as engineFetchRemoteChanges,
+  collectAllData as engineCollectAllData,
+  processBackupData as engineProcessBackupData,
+  logOperation as engineLogOperation,
+} from './data-sync/engine';
+
+import { ensureDataDirectory, loadSyncState as storageLoadState, saveSyncState as storageSaveState, cleanupOldBackups } from './data-sync/storage';
+
 // #DEBUG: Data sync manager entry point
 Logger.debug('DATA_SYNC', 'Data sync manager module loaded');
 
 // 🔥 기가차드 동기화 상태
-export type SyncStatus = 'idle' | 'syncing' | 'error' | 'paused' | 'offline';
-
-// 🔥 기가차드 충돌 해결 전략
-export type ConflictResolution = 'local' | 'remote' | 'merge' | 'manual';
-
-// 🔥 기가차드 동기화 제공자
-export type SyncProvider = 'google-drive' | 'dropbox' | 'icloud' | 'onedrive' | 'custom';
-
-// 🔥 기가차드 동기화 데이터 타입
-export interface SyncDataItem {
-  id: string;
-  type: 'typing-session' | 'user-settings' | 'keyboard-config' | 'window-history';
-  data: unknown;
-  timestamp: Date;
-  version: number;
-  checksum: string;
-}
-
-// 🔥 기가차드 동기화 충돌
-export interface SyncConflict {
-  id: string;
-  localItem: SyncDataItem;
-  remoteItem: SyncDataItem;
-  conflictType: 'version' | 'content' | 'timestamp';
-  resolution?: ConflictResolution;
-  resolvedItem?: SyncDataItem;
-}
-
-// 🔥 기가차드 동기화 로그
-export interface SyncLog {
-  id: string;
-  timestamp: Date;
-  operation: 'upload' | 'download' | 'delete' | 'conflict' | 'error';
-  itemId?: string;
-  itemType?: string;
-  status: 'success' | 'failed' | 'pending';
-  message: string;
-  error?: string;
-}
-
-// 🔥 기가차드 백업 정보
-export interface BackupInfo {
-  id: string;
-  timestamp: Date;
-  size: number; // bytes
-  itemCount: number;
-  provider: SyncProvider;
-  filePath: string;
-  checksum: string;
-  isAutomatic: boolean;
-}
-
-// 🔥 기가차드 동기화 설정
-export interface DataSyncConfig {
-  enabled: boolean;
-  provider: SyncProvider;
-  autoSync: boolean;
-  syncInterval: number; // milliseconds
-  backupInterval: number; // milliseconds
-  maxBackups: number;
-  enableConflictResolution: boolean;
-  defaultConflictResolution: ConflictResolution;
-  enableOfflineMode: boolean;
-  compressionEnabled: boolean;
-  encryptionEnabled: boolean;
-}
-
-// 🔥 기가차드 동기화 통계
-export interface SyncStats {
-  totalSyncs: number;
-  successfulSyncs: number;
-  failedSyncs: number;
-  conflictsResolved: number;
-  lastSyncTime: Date | null;
-  totalDataSynced: number; // bytes
-  averageSyncTime: number; // milliseconds
-}
 
 /**
  * 🔥 DataSyncManager - 클라우드 데이터 동기화 시스템
@@ -218,16 +168,8 @@ export class DataSyncManager extends BaseManager {
    */
   private async initializeDataDirectory(): Promise<void> {
     try {
-      await fs.mkdir(this.dataDirectory, { recursive: true });
-      
-      const subdirs = ['backups', 'cache', 'conflicts', 'logs'];
-      for (const subdir of subdirs) {
-        await fs.mkdir(join(this.dataDirectory, subdir), { recursive: true });
-      }
-      
-      Logger.debug(this.componentName, 'Data directory initialized', {
-        path: this.dataDirectory,
-      });
+      await ensureDataDirectory(this.dataDirectory);
+      Logger.debug(this.componentName, 'Data directory initialized', { path: this.dataDirectory });
     } catch (error) {
       Logger.error(this.componentName, 'Failed to initialize data directory', error);
       throw error;
@@ -241,19 +183,11 @@ export class DataSyncManager extends BaseManager {
     try {
       const stateFile = join(this.dataDirectory, 'sync-state.json');
       
-      try {
-        const stateData = await fs.readFile(stateFile, 'utf-8');
-        const state = JSON.parse(stateData);
-        
-        this.syncStats = state.stats || this.syncStats;
-        this.backupHistory = state.backups || [];
-        this.syncLogs = state.logs || [];
-        
-        Logger.debug(this.componentName, 'Sync state loaded successfully');
-      } catch {
-        // 상태 파일이 없으면 새로 생성
-        await this.saveSyncState();
-      }
+      const loaded = await storageLoadState(this.dataDirectory, { stats: this.syncStats });
+      this.syncStats = loaded.stats || this.syncStats;
+      this.backupHistory = loaded.backups || [];
+      this.syncLogs = loaded.logs || [];
+      Logger.debug(this.componentName, 'Sync state loaded successfully');
     } catch (error) {
       Logger.error(this.componentName, 'Failed to load sync state', error);
     }
@@ -264,16 +198,7 @@ export class DataSyncManager extends BaseManager {
    */
   private async saveSyncState(): Promise<void> {
     try {
-      const stateFile = join(this.dataDirectory, 'sync-state.json');
-      const state = {
-        stats: this.syncStats,
-        backups: this.backupHistory,
-        logs: this.syncLogs.slice(-100), // 최근 100개만 저장
-        timestamp: new Date(),
-      };
-      
-      await fs.writeFile(stateFile, JSON.stringify(state, null, 2));
-      
+      await storageSaveState(this.dataDirectory, { stats: this.syncStats, backups: this.backupHistory, logs: this.syncLogs });
       Logger.debug(this.componentName, 'Sync state saved successfully');
     } catch (error) {
       Logger.error(this.componentName, 'Failed to save sync state', error);
@@ -331,28 +256,40 @@ export class DataSyncManager extends BaseManager {
       Logger.debug(this.componentName, 'Starting sync operation');
 
       // 로컬 변경사항 수집
-      const localChanges = await this.collectLocalChanges();
+      const localChanges = await engineCollectLocalChanges();
       
       // 원격 변경사항 가져오기
-      const remoteChanges = await this.fetchRemoteChanges();
+      const remoteChanges = await engineFetchRemoteChanges();
       
       // 충돌 감지 및 해결
-      const conflicts = this.detectConflicts(localChanges, remoteChanges);
+      // 충돌 감지
+      const conflicts = localChanges.flatMap((local) => {
+        const remote = remoteChanges.find((r) => r.id === local.id);
+        if (remote && hasConflict(local, remote)) {
+          return [{
+            id: `conflict_${local.id}_${Date.now()}`,
+            localItem: local,
+            remoteItem: remote,
+            conflictType: determineConflictType(local, remote),
+          } as SyncConflict];
+        }
+        return [] as SyncConflict[];
+      });
       if (conflicts.length > 0) {
         await this.resolveConflicts(conflicts);
       }
 
       // 데이터 업로드
-      await this.uploadLocalChanges(localChanges);
-      
+      await uploadLocalChanges(localChanges, this.syncConfig);
+
       // 데이터 다운로드
-      await this.downloadRemoteChanges(remoteChanges);
+      await downloadRemoteChanges(remoteChanges, this.syncConfig);
 
       this.syncStats.successfulSyncs++;
       this.syncStats.lastSyncTime = new Date();
       
       const syncTime = Date.now() - startTime;
-      this.updateAverageSyncTime(syncTime);
+      engineUpdateAverageSyncTime(this.syncStats, syncTime);
 
       this.logSyncOperation('upload', 'success', 'Sync completed successfully');
       
@@ -377,18 +314,14 @@ export class DataSyncManager extends BaseManager {
    * 로컬 변경사항 수집
    */
   private async collectLocalChanges(): Promise<SyncDataItem[]> {
-    // 실제 구현에서는 데이터베이스나 파일 시스템에서 변경사항 수집
-    // 여기서는 더미 데이터 반환
-    return [];
+    return engineCollectLocalChanges();
   }
 
   /**
    * 원격 변경사항 가져오기
    */
   private async fetchRemoteChanges(): Promise<SyncDataItem[]> {
-    // 실제 구현에서는 클라우드 서비스 API 호출
-    // 여기서는 더미 데이터 반환
-    return [];
+    return engineFetchRemoteChanges();
   }
 
   /**
@@ -490,8 +423,7 @@ export class DataSyncManager extends BaseManager {
    * 로컬 변경사항 업로드
    */
   private async uploadLocalChanges(changes: SyncDataItem[]): Promise<void> {
-    // 실제 구현에서는 클라우드 서비스 API 호출
-    const totalBytes = changes.reduce((sum, item) => sum + JSON.stringify(item).length, 0);
+    const totalBytes = await uploadLocalChanges(changes, this.syncConfig);
     this.syncStats.totalDataSynced += totalBytes;
   }
 
@@ -500,7 +432,7 @@ export class DataSyncManager extends BaseManager {
    */
   private async downloadRemoteChanges(changes: SyncDataItem[]): Promise<void> {
     // 실제 구현에서는 로컬 데이터베이스 업데이트
-    const totalBytes = changes.reduce((sum, item) => sum + JSON.stringify(item).length, 0);
+    const totalBytes = await downloadRemoteChanges(changes, this.syncConfig);
     this.syncStats.totalDataSynced += totalBytes;
   }
 
@@ -508,8 +440,7 @@ export class DataSyncManager extends BaseManager {
    * 평균 동기화 시간 업데이트
    */
   private updateAverageSyncTime(syncTime: number): void {
-    const totalTime = this.syncStats.averageSyncTime * (this.syncStats.successfulSyncs - 1) + syncTime;
-    this.syncStats.averageSyncTime = totalTime / this.syncStats.successfulSyncs;
+    engineUpdateAverageSyncTime(this.syncStats, syncTime);
   }
 
   /**
@@ -523,11 +454,11 @@ export class DataSyncManager extends BaseManager {
       const backupPath = join(this.dataDirectory, 'backups', `${backupId}.json`);
       
       // 모든 데이터 수집
-      const allData = await this.collectAllData();
-      
+      const allData = await engineCollectAllData();
+
       // 압축 및 암호화 (설정에 따라)
-      const processedData = await this.processBackupData(allData);
-      
+      const processedData = await engineProcessBackupData(allData, this.syncConfig);
+
       // 백업 파일 생성
       await fs.writeFile(backupPath, JSON.stringify(processedData));
       
@@ -545,7 +476,7 @@ export class DataSyncManager extends BaseManager {
       this.backupHistory.push(backupInfo);
       
       // 오래된 백업 정리
-      await this.cleanupOldBackups();
+      this.backupHistory = await cleanupOldBackups(this.backupHistory, this.syncConfig.maxBackups);
       
       this.logSyncOperation('upload', 'success', 'Backup completed successfully');
       
@@ -565,60 +496,28 @@ export class DataSyncManager extends BaseManager {
    * 모든 데이터 수집
    */
   private async collectAllData(): Promise<SyncDataItem[]> {
-    // 실제 구현에서는 모든 사용자 데이터 수집
-    return [];
+    return engineCollectAllData();
   }
 
   /**
    * 백업 데이터 처리
    */
   private async processBackupData(data: SyncDataItem[]): Promise<unknown> {
-    let processedData: unknown = data;
-    
-    // 압축
-    if (this.syncConfig.compressionEnabled) {
-      // 실제 구현에서는 gzip 등 압축 알고리즘 사용
-      processedData = data;
-    }
-    
-    // 암호화
-    if (this.syncConfig.encryptionEnabled) {
-      // 실제 구현에서는 AES 등 암호화 알고리즘 사용
-      processedData = data;
-    }
-    
-    return processedData;
+    return engineProcessBackupData(data, this.syncConfig);
   }
 
   /**
    * 체크섬 생성
    */
   private generateChecksum(data: string): string {
-    // 실제 구현에서는 SHA-256 등 해시 알고리즘 사용
-    return `checksum_${data.length}_${Date.now()}`;
+    return generateChecksum(data);
   }
 
   /**
    * 오래된 백업 정리
    */
   private async cleanupOldBackups(): Promise<void> {
-    if (this.backupHistory.length <= this.syncConfig.maxBackups) {
-      return;
-    }
-
-    // 오래된 백업 정렬
-    this.backupHistory.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
-    const backupsToDelete = this.backupHistory.splice(this.syncConfig.maxBackups);
-    
-    for (const backup of backupsToDelete) {
-      try {
-        await fs.unlink(backup.filePath);
-        Logger.debug(this.componentName, 'Old backup deleted', { backupId: backup.id });
-      } catch (error) {
-        Logger.warn(this.componentName, 'Failed to delete old backup', { backupId: backup.id, error });
-      }
-    }
+    this.backupHistory = await cleanupOldBackups(this.backupHistory, this.syncConfig.maxBackups);
   }
 
   /**
@@ -630,21 +529,8 @@ export class DataSyncManager extends BaseManager {
     message: string,
     error?: Error
   ): void {
-    const log: SyncLog = {
-      id: `log_${Date.now()}`,
-      timestamp: new Date(),
-      operation,
-      status,
-      message,
-      error: error?.message,
-    };
-
-    this.syncLogs.push(log);
-    
-    // 로그 크기 제한
-    if (this.syncLogs.length > 1000) {
-      this.syncLogs = this.syncLogs.slice(-500);
-    }
+    const log: SyncLog = { id: `log_${Date.now()}`, timestamp: new Date(), operation, status, message, error: error?.message };
+    engineLogOperation(this.syncLogs, log);
   }
 
   /**
