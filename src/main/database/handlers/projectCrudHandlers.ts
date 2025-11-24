@@ -3,63 +3,19 @@
 // MIGRATION: MIGRATED FROM projectIpcHandlers.ts:19-556
 // MIGRATION: TODO verify Prisma disconnect, error handling, 'new' ID edge case
 
-import type { ProjectStructure as PrismaProjectStructure } from '@prisma/client';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Logger } from '../../../shared/logger';
 import { IpcResponse, Project, ProjectStructure } from '../../../shared/types';
-import {
-  isValidGenre,
-  isValidProjectStatus,
-  isValidStructureStatus,
-  type KoreanWebNovelGenre,
-  type ProjectStatus,
-  type StructureStatus,
-} from '../../../shared/constants/enums';
+// PrismaProjectStructure is no longer used here; mapping helpers live in mappers/projectMapper
 import { prismaService } from '../services/PrismaService';
 import { projectService } from '../services/projectService';
+import { sampleProjectService } from '../services/sampleProjectService';
+import { projectImportService } from '../services/projectImportService';
 import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../../shared/validation/projectValidation';
 import { globalRateLimiter, channelLimiters } from '../../services/RateLimiterService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
 
-const normalizeGenre = (value?: string | null): KoreanWebNovelGenre => {
-  if (typeof value === 'string' && isValidGenre(value)) {
-    return value;
-  }
-
-  return 'unknown';
-};
-
-const normalizeStatus = (value?: string | null): ProjectStatus => {
-  if (typeof value === 'string' && isValidProjectStatus(value)) {
-    return value;
-  }
-
-  return 'active';
-};
-
-const normalizeStructureStatus = (value: string): StructureStatus =>
-  isValidStructureStatus(value) ? value : 'draft';
-
-const toProjectStructure = (structure: PrismaProjectStructure): ProjectStructure => ({
-  id: structure.id,
-  projectId: structure.projectId,
-  type: structure.type,
-  title: structure.title,
-  description: structure.description ?? undefined,
-  content: structure.content ?? undefined,
-  status: normalizeStructureStatus(structure.status),
-  wordCount: structure.wordCount ?? 0,
-  sortOrder: structure.sortOrder ?? 0,
-  parentId: structure.parentId ?? undefined,
-  depth: structure.depth ?? 0,
-  color: structure.color ?? '#6b7280',
-  isActive: structure.isActive ?? true,
-  createdAt: structure.createdAt,
-  updatedAt: structure.updatedAt,
-});
-
-const mapProjectStructures = (structures?: PrismaProjectStructure[]): ProjectStructure[] =>
-  (structures ?? []).map(toProjectStructure);
+import { mapPrismaProjectToDomain } from '../mappers/projectMapper';
 
 /**
  * 🔥 프로젝트 CRUD IPC 핸들러 - 성능 최적화
@@ -107,24 +63,7 @@ export function registerProjectCrudHandlers(): void {
       });
 
       // Prisma 결과를 Project 타입으로 변환
-      const convertedProjects: Project[] = projects.map((project) => ({
-        id: project.id,
-        title: project.title,
-        description: project.description || '',
-        content: project.content || '',
-        chapters: project.chapters ?? undefined,
-        progress: project.progress || 0,
-        wordCount: project.wordCount || 0,
-        lastModified: project.lastModified,
-        createdAt: project.createdAt,
-        updatedAt: project.lastModified,
-        genre: normalizeGenre(project.genre),
-        status: normalizeStatus(project.status),
-        author: project.author || '사용자',
-        characters: project.characters ?? [],
-        structure: mapProjectStructures(project.structure),
-        notes: project.notes ?? [],
-      }));
+      const convertedProjects: Project[] = projects.map(mapPrismaProjectToDomain);
 
       Logger.info('PROJECT_CRUD_IPC', `✅ 조회된 프로젝트 수: ${convertedProjects.length}`);
 
@@ -219,24 +158,7 @@ export function registerProjectCrudHandlers(): void {
         };
       }
 
-      const convertedProject: Project = {
-        id: project.id,
-        title: project.title,
-        description: project.description || '',
-        content: project.content || '',
-        chapters: project.chapters ?? undefined,
-        progress: project.progress || 0,
-        wordCount: project.wordCount || 0,
-        lastModified: project.lastModified,
-        createdAt: project.createdAt,
-        updatedAt: project.lastModified,
-        genre: normalizeGenre(project.genre),
-        status: normalizeStatus(project.status),
-        author: project.author || '사용자',
-        characters: project.characters ?? [],
-        structure: mapProjectStructures(project.structure),
-        notes: project.notes ?? [],
-      };
+      const convertedProject: Project = mapPrismaProjectToDomain(project);
 
       return {
         success: true,
@@ -424,21 +346,7 @@ export function registerProjectCrudHandlers(): void {
 
       const updatedProject = updateResult.data as any;
 
-      const convertedProject: Project = {
-        id: updatedProject.id,
-        title: updatedProject.title,
-        description: updatedProject.description || '',
-        content: updatedProject.content || '',
-        chapters: updatedProject.chapters ?? undefined,
-        progress: updatedProject.progress || 0,
-        wordCount: updatedProject.wordCount || 0,
-        genre: normalizeGenre(updatedProject.genre),
-        status: normalizeStatus(updatedProject.status),
-        author: updatedProject.author || '사용자',
-        createdAt: updatedProject.createdAt,
-        lastModified: updatedProject.lastModified,
-        updatedAt: updatedProject.lastModified,
-      };
+      const convertedProject: Project = mapPrismaProjectToDomain(updatedProject);
 
       Logger.info('PROJECT_CRUD_IPC', '✅ 프로젝트 업데이트 완료', {
         id: convertedProject.id,
@@ -494,104 +402,16 @@ export function registerProjectCrudHandlers(): void {
   // 🔥 기가차드 샘플 프로젝트 생성
   ipcMain.handle('projects:create-sample', async (): Promise<IpcResponse<Project>> => {
     try {
-      Logger.debug('PROJECT_CRUD_IPC', 'Creating sample project');
-
-      const sampleProjects = [
-        {
-          title: '나의 첫 번째 소설',
-          description: '창작의 첫 걸음을 위한 소설 프로젝트입니다.',
-          content: `제1장: 새로운 시작
-
-오늘부터 내 인생의 새로운 챕터가 시작된다. 
-키보드 위에서 춤추는 손가락들이 만들어내는 이야기.
-
-여기서부터 당신의 상상력을 펼쳐보세요!
-
-✍️ 팁:
-- 하루에 500단어씩 꾸준히 작성해보세요
-- 등장인물의 성격을 구체적으로 설정해보세요
-- 독자가 몰입할 수 있는 장면을 묘사해보세요
-
-Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
-          genre: '소설',
-          progress: 15,
-          wordCount: 450,
-          author: '새로운 작가'
-        }
-      ];
-
-      const selectedSample = sampleProjects[0]; // 첫 번째 샘플 사용
-
-      if (!selectedSample) {
-        throw new Error('Sample project not found');
+      const created = await sampleProjectService.createSampleProject();
+      if (!created.success) {
+        return { success: false, error: created.error || 'Failed to create sample', timestamp: new Date() };
       }
 
-      // 실제 DB에 저장
-      try {
-        const sampleProject = await databaseMutex.acquireWriteLock(async () => {
-          const prisma = await prismaService.getClient();
-          try {
-            const now = new Date();
-
-            const createdProject = await prisma.project.create({
-              data: {
-                title: selectedSample.title,
-                description: selectedSample.description,
-                content: selectedSample.content,
-                progress: selectedSample.progress,
-                wordCount: selectedSample.wordCount,
-                genre: selectedSample.genre,
-                status: 'active',
-                author: selectedSample.author,
-                createdAt: now,
-                lastModified: now,
-              }
-            });
-
-            return {
-              id: createdProject.id,
-              title: createdProject.title,
-              description: createdProject.description || '',
-              content: createdProject.content || '',
-              progress: createdProject.progress || 0,
-              wordCount: createdProject.wordCount || 0,
-              genre: createdProject.genre || 'unknown',
-              status: createdProject.status || 'active',
-              author: createdProject.author || '사용자',
-              createdAt: createdProject.createdAt,
-              lastModified: createdProject.lastModified,
-              updatedAt: createdProject.lastModified, // 🔥 lastModified를 updatedAt으로 사용
-            } as Project;
-          } finally {
-            await prisma.$disconnect();
-          }
-        });
-
-        Logger.info('PROJECT_CRUD_IPC', `샘플 프로젝트 생성됨: ${sampleProject.title}`, {
-          genre: sampleProject.genre,
-          wordCount: sampleProject.wordCount
-        });
-
-        return {
-          success: true,
-          data: sampleProject,
-          timestamp: new Date(),
-        };
-      } catch (error) {
-        Logger.error('PROJECT_CRUD_IPC', 'Failed to create sample project', error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date(),
-        };
-      }
+      Logger.info('PROJECT_CRUD_IPC', `샘플 프로젝트 생성됨: ${created.data?.title}`, { genre: created.data?.genre, wordCount: created.data?.wordCount });
+      return { success: true, data: created.data as Project, timestamp: new Date() };
     } catch (error) {
       Logger.error('PROJECT_CRUD_IPC', 'Failed to create sample project', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date(),
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date() };
     }
   });
 
@@ -605,7 +425,7 @@ Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
       const path = require('path');
 
       // 파일 선택 다이얼로그 열기
-      const result = await dialog.showOpenDialog({
+      const dialogResult = await dialog.showOpenDialog({
         title: 'Loop 프로젝트로 가져올 파일 선택',
         filters: [
           { name: '텍스트 파일', extensions: ['txt', 'md', 'rtf'] },
@@ -615,7 +435,7 @@ Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
         properties: ['openFile']
       });
 
-      if (result.canceled || !result.filePaths.length) {
+      if (dialogResult.canceled || !dialogResult.filePaths.length) {
         return {
           success: false,
           error: '파일이 선택되지 않았습니다.',
@@ -623,7 +443,7 @@ Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
         };
       }
 
-      const filePath = result.filePaths[0];
+      const filePath = dialogResult.filePaths[0];
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const fileName = path.basename(filePath, path.extname(filePath));
       const fileExtension = path.extname(filePath).toLowerCase();
@@ -641,66 +461,13 @@ Loop과 함께 작가의 꿈을 실현해보세요! 🚀`,
         estimatedGenre = '블로그';
       }
 
-      // 실제 DB에 저장
-      try {
-        const importedProject = await databaseMutex.acquireWriteLock(async () => {
-          const prisma = await prismaService.getClient();
-          try {
-            const now = new Date();
-
-            const createdProject = await prisma.project.create({
-              data: {
-                title: fileName,
-                description: `가져온 파일: ${path.basename(filePath)} (${wordCount}단어)`,
-                content: fileContent,
-                progress: 100, // 이미 작성된 파일이므로
-                wordCount,
-                genre: estimatedGenre,
-                status: 'completed',
-                author: '가져온 파일',
-                createdAt: now,
-                lastModified: now,
-              }
-            });
-
-            return {
-              id: createdProject.id,
-              title: createdProject.title,
-              description: createdProject.description || '',
-              content: createdProject.content || '',
-              progress: createdProject.progress || 0,
-              wordCount: createdProject.wordCount || 0,
-              genre: createdProject.genre || 'unknown',
-              status: createdProject.status || 'active',
-              author: createdProject.author || '사용자',
-              createdAt: createdProject.createdAt,
-              lastModified: createdProject.lastModified,
-              updatedAt: createdProject.lastModified, // 🔥 lastModified를 updatedAt으로 사용
-            } as Project;
-          } finally {
-            await prisma.$disconnect();
-          }
-        });
-
-        Logger.info('PROJECT_CRUD_IPC', `파일 가져오기 완료: ${fileName}`, {
-          filePath,
-          wordCount,
-          genre: estimatedGenre
-        });
-
-        return {
-          success: true,
-          data: importedProject,
-          timestamp: new Date(),
-        };
-      } catch (error) {
-        Logger.error('PROJECT_CRUD_IPC', 'Failed to import project', error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date(),
-        };
+      const importResult = await projectImportService.importFromFile(filePath);
+      if (!importResult.success) {
+        return { success: false, error: importResult.error || 'Import failed', timestamp: new Date() };
       }
+
+      Logger.info('PROJECT_CRUD_IPC', `파일 가져오기 완료: ${fileName}`, { filePath, wordCount, genre: importResult.data?.genre });
+      return { success: true, data: importResult.data as Project, timestamp: new Date() };
     } catch (error) {
       Logger.error('PROJECT_CRUD_IPC', 'Failed to import project file', error);
       return {

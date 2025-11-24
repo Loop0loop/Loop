@@ -327,48 +327,6 @@ export class DataSyncManager extends BaseManager {
   /**
    * 충돌 감지
    */
-  private detectConflicts(localChanges: SyncDataItem[], remoteChanges: SyncDataItem[]): SyncConflict[] {
-    const conflicts: SyncConflict[] = [];
-    
-    for (const localItem of localChanges) {
-      const remoteItem = remoteChanges.find(item => item.id === localItem.id);
-      
-      if (remoteItem && this.hasConflict(localItem, remoteItem)) {
-        conflicts.push({
-          id: `conflict_${localItem.id}_${Date.now()}`,
-          localItem,
-          remoteItem,
-          conflictType: this.determineConflictType(localItem, remoteItem),
-        });
-      }
-    }
-    
-    return conflicts;
-  }
-
-  /**
-   * 충돌 확인
-   */
-  private hasConflict(localItem: SyncDataItem, remoteItem: SyncDataItem): boolean {
-    return (
-      localItem.version !== remoteItem.version ||
-      localItem.checksum !== remoteItem.checksum ||
-      localItem.timestamp.getTime() !== remoteItem.timestamp.getTime()
-    );
-  }
-
-  /**
-   * 충돌 타입 결정
-   */
-  private determineConflictType(localItem: SyncDataItem, remoteItem: SyncDataItem): SyncConflict['conflictType'] {
-    if (localItem.version !== remoteItem.version) {
-      return 'version';
-    }
-    if (localItem.checksum !== remoteItem.checksum) {
-      return 'content';
-    }
-    return 'timestamp';
-  }
 
   /**
    * 충돌 해결
@@ -393,7 +351,7 @@ export class DataSyncManager extends BaseManager {
         conflict.resolvedItem = conflict.remoteItem;
         break;
       case 'merge':
-        conflict.resolvedItem = await this.mergeItems(conflict.localItem, conflict.remoteItem);
+        conflict.resolvedItem = await mergeItems(conflict.localItem, conflict.remoteItem);
         break;
       case 'manual':
         this.conflictQueue.push(conflict);
@@ -413,11 +371,7 @@ export class DataSyncManager extends BaseManager {
   /**
    * 항목 병합
    */
-  private async mergeItems(localItem: SyncDataItem, remoteItem: SyncDataItem): Promise<SyncDataItem> {
-    // 실제 구현에서는 데이터 타입별 병합 로직 필요
-    // 여기서는 최신 타임스탬프를 가진 항목 반환
-    return localItem.timestamp > remoteItem.timestamp ? localItem : remoteItem;
-  }
+  // mergeItems, conflict detection and conflict helpers are delegated to the engine
 
   /**
    * 로컬 변경사항 업로드

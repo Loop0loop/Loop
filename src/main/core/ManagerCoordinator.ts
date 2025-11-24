@@ -254,9 +254,9 @@ export class ManagerCoordinator {
   private async initializeDatabase(): Promise<void> {
     try {
       // 🔥 Prisma 마이그레이션 먼저 실행 (DB 스키마 동기화)
-      const { prismaService } = await import('../database/services/PrismaService');
+      const { migrationManager } = await import('../database/managers/migrationManager');
       try {
-        await prismaService.runMigrations();
+        await migrationManager.runMigrations();
         Logger.info(this.componentName, '✅ Prisma migrations 실행 완료');
       } catch (migrationError) {
         Logger.warn(this.componentName, '⚠️ Prisma migration 중 일부 오류 발생 (table exists일 수 있음)', migrationError);

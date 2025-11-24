@@ -56,6 +56,7 @@ interface MockPrismaClient {
 import { Logger } from '../../../shared/logger';
 import { BaseManager } from '../../common/BaseManager';
 import { Result, TypingSession, TypingStats, UserPreferences } from '../../../shared/types';
+import { typingSessionService } from '../services/typingSessionService';
 import { existsSync, copyFileSync, statSync, mkdirSync, readFileSync } from 'fs';
 import { promises as fsPromises } from 'fs';
 import { join, dirname } from 'path';
@@ -262,106 +263,22 @@ export class DatabaseManager extends BaseManager {
    * 타이핑 세션 저장
    */
   public async saveTypingSession(session: Omit<TypingSession, 'id'>): Promise<Result<string>> {
-    try {
-      if (!this.connectionStatus.connected) {
-        throw new Error('Database not connected');
-      }
-
-      if (!this.prisma) {
-        throw new Error('Prisma client not initialized');
-      }
-
-      const result = await this.prisma.typingSession.create({
-        data: {
-          userId: session.userId,
-          content: session.content,
-          startTime: session.startTime,
-          endTime: session.endTime || new Date(),
-          keyCount: session.keyCount,
-          wpm: session.wpm,
-          accuracy: session.accuracy,
-          windowTitle: session.windowTitle || 'Unknown',
-          appName: session.appName || 'Unknown',
-        },
-      });
-
-      Logger.info(this.componentName, 'Typing session saved', { id: result.id });
-      return { success: true, data: result.id };
-    } catch (error) {
-      Logger.error(this.componentName, 'Failed to save typing session', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    // Delegate to TypingSessionService which uses Prisma in a dedicated service
+    return typingSessionService.saveTypingSession(session);
   }
 
   /**
    * 타이핑 세션 목록 조회
    */
   public async getTypingSessions(limit = 100, offset = 0): Promise<Result<TypingSession[]>> {
-    try {
-      if (!this.connectionStatus.connected) {
-        throw new Error('Database not connected');
-      }
-
-      if (!this.prisma) {
-        throw new Error('Prisma client not initialized');
-      }
-
-      const sessions = await this.prisma.typingSession.findMany({
-        take: limit,
-        skip: offset,
-        orderBy: { startTime: 'desc' },
-      });
-
-      Logger.debug(this.componentName, 'Retrieved typing sessions', { count: sessions.length });
-      return { success: true, data: sessions as unknown as TypingSession[] };
-    } catch (error) {
-      Logger.error(this.componentName, 'Failed to retrieve typing sessions', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    return typingSessionService.getTypingSessions(limit, offset);
   }
 
   /**
    * 타이핑 통계 조회
    */
   public async getTypingStats(days = 30): Promise<Result<TypingStats>> {
-    try {
-      if (!this.connectionStatus.connected) {
-        throw new Error('Database not connected');
-      }
-
-      const since = new Date();
-      since.setDate(since.getDate() - days);
-
-      if (!this.prisma) {
-        throw new Error('Prisma client not initialized');
-      }
-
-      const stats = await this.prisma.typingSession.aggregate({
-        where: {
-          startTime: { gte: since },
-        },
-        _avg: { wpm: true, accuracy: true },
-        _max: { wpm: true },
-        _sum: { keyCount: true },
-        _count: true,
-      } as unknown as PrismaQueryOptions);
-
-      const result: TypingStats = {
-        totalKeystrokes: stats._sum.keyCount || 0,
-        wpm: Math.round(stats._avg.wpm || 0),
-        accuracy: Math.round((stats._avg.accuracy || 0) * 100) / 100,
-        sessionDuration: 0, // 계산 필요
-        charactersTyped: Math.floor((stats._sum.keyCount || 0) * 0.8), // 추정
-        wordsTyped: Math.floor((stats._sum.keyCount || 0) / 5), // 평균 5글자
-        errorsCount: 0, // 추가 계산 필요
-      };
-
-      Logger.debug(this.componentName, 'Retrieved typing stats', result);
-      return { success: true, data: result };
-    } catch (error) {
-      Logger.error(this.componentName, 'Failed to retrieve typing stats', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    return typingSessionService.getTypingStats(days);
   }
 
   /**
@@ -523,34 +440,7 @@ export class DatabaseManager extends BaseManager {
    * 타이핑 세션 삭제
    */
   public async deleteTypingSession(sessionId: string): Promise<Result<boolean>> {
-    try {
-      if (!this.connectionStatus.connected) {
-        throw new Error('Database not connected');
-      }
-
-      if (!this.prisma) {
-        throw new Error('Prisma client not initialized');
-      }
-
-      // 세션 삭제 (deleteMany 사용)
-      const result = await this.prisma.typingSession.deleteMany({
-        where: { id: sessionId },
-      });
-
-      if (result.count === 0) {
-        Logger.warn(this.componentName, 'Session not found for deletion', { sessionId });
-        return { success: false, error: 'Session not found' };
-      }
-
-      Logger.info(this.componentName, 'Typing session deleted successfully', { 
-        sessionId, 
-        deletedCount: result.count 
-      });
-      return { success: true, data: true };
-    } catch (error) {
-      Logger.error(this.componentName, 'Failed to delete typing session', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    return typingSessionService.deleteTypingSession(sessionId);
   }
 }
 

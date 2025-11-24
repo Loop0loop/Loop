@@ -1,3 +1,4 @@
+// Clean single implementation of TypingSessionService
 import { Logger } from '../../../shared/logger';
 import { createSuccess, createError } from '../../../shared/common';
 import type { TypingSession, TypingStats } from '../../../shared/types';
@@ -101,7 +102,6 @@ export class TypingSessionService {
       const sessions = await client.typingSession.findMany({ where: { startTime: { gte: cutoffDate } } });
 
       // calculate basic aggregates
-      // compute detailed stats similar to DatabaseService.calculateStats
       let totalKeystrokes = 0;
       let totalWpm = 0;
       let totalAccuracy = 0;
