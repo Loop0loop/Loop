@@ -13,10 +13,11 @@ import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  seed: 'tsx prisma/seed.ts',
   migrations: {
     path: 'prisma/migrations',
   },
+  // Datasource URL used by Prisma at runtime.
+  // Keep `datasource` singular to match the runtime config shape expected by `prisma` CLI.
   datasource: {
     url: env('DATABASE_URL'),
   },

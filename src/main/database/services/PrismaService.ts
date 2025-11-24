@@ -7,10 +7,11 @@ import { ensureDatabaseUrl } from '../utils/prismaPaths';
 import { safePathJoin } from '../../../shared/utils/pathSecurity';
 
 // PrismaClient 타입 정의 (런타임에 동적 로드)
-type PrismaClient = any;
+import type { PrismaClient as PrismaClientType } from '@prisma/client';
+import type { PrismaBetterSqlite3 as PrismaBetterSqlite3Factory } from '@prisma/adapter-better-sqlite3';
 
 // 🔥 트랜잭션 클라이언트 타입 정의
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+type TransactionClient = Omit<PrismaClientType, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
 /**
  * 🔥 Prisma 싱글톤 서비스
@@ -19,7 +20,7 @@ type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' |
 
 class PrismaService {
   private static instance: PrismaService;
-  private client: PrismaClient | null = null;
+  private client: PrismaClientType | null = null;
   private isConnecting = false;
 
   private constructor() {
@@ -36,7 +37,7 @@ class PrismaService {
   /**
    * 🔥 Prisma 클라이언트 가져오기 (지연 초기화)
    */
-  public async getClient(): Promise<PrismaClient> {
+  public async getClient(): Promise<PrismaClientType> {
     if (this.client) {
       return this.client;
     }
@@ -83,6 +84,7 @@ class PrismaService {
 
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('PRISMA_SERVICE', 'Loading Prisma client from @prisma/client');
+      // module namespace for dynamic require
       let PrismaPkg: any;
       try {
         PrismaPkg = require('@prisma/client');
@@ -98,7 +100,8 @@ class PrismaService {
 
       // Prisma 7 SQLite: Must use better-sqlite3 adapter for Electron
       // The adapter is required because Prisma's Rust engine is not available
-      let adapter: any = null;
+      // adapter factory type (runtime-free import for typing)
+      let adapter: PrismaBetterSqlite3Factory | null = null;
       try {
         const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
         adapter = new PrismaBetterSqlite3({ url: databaseUrl });
@@ -112,10 +115,11 @@ class PrismaService {
       }
 
       // Create Prisma client with adapter
+      // Prisma client type is imported as a runtime-free type; the runtime value is created dynamically
       this.client = new PrismaClient({
         adapter,
         log: ['error', 'warn'],
-      });
+      }) as unknown as PrismaClientType;
 
       Logger.info('PRISMA_SERVICE', '✅ Prisma client created successfully with better-sqlite3 adapter');
 
@@ -220,7 +224,8 @@ class PrismaService {
           progress: projectData.project.progress || 0,
           lastModified: new Date(),
         },
-        create: projectData.project,
+        // TODO: map Project -> Prisma ProjectCreateInput explicitly for type safety
+        create: projectData.project as unknown as any,
       });
 
       // 캐릭터 정보 저장 (있는 경우)
@@ -228,8 +233,8 @@ class PrismaService {
         for (const character of projectData.characters) {
           await tx.projectCharacter.upsert({
             where: { id: character.id },
-            update: character,
-            create: { ...character, projectId: project.id },
+            update: character as unknown as any,
+            create: { ...(character as any), projectId: project.id } as any,
           });
         }
       }
@@ -239,8 +244,8 @@ class PrismaService {
         for (const structureItem of projectData.structure) {
           await tx.projectStructure.upsert({
             where: { id: structureItem.id },
-            update: structureItem,
-            create: { ...structureItem, projectId: project.id },
+            update: structureItem as unknown as any,
+            create: { ...(structureItem as any), projectId: project.id } as any,
           });
         }
       }
@@ -250,8 +255,8 @@ class PrismaService {
         for (const note of projectData.notes) {
           await tx.projectNote.upsert({
             where: { id: note.id },
-            update: note,
-            create: { ...note, projectId: project.id },
+            update: note as unknown as any,
+            create: { ...(note as any), projectId: project.id } as any,
           });
         }
       }
@@ -351,7 +356,7 @@ class PrismaService {
       
       // 💡 GeminiChatSession 테이블 생성 확인
       try {
-        const tables = await client.$queryRaw`
+        const tables: any[] = await client.$queryRaw`
           SELECT name FROM sqlite_master 
           WHERE type='table' AND name='gemini_chat_sessions'
         `;
@@ -390,7 +395,7 @@ class PrismaService {
 
       // 💡 GeminiChatMessage 테이블 생성 확인
       try {
-        const messages = await client.$queryRaw`
+        const messages: any[] = await client.$queryRaw`
           SELECT name FROM sqlite_master 
           WHERE type='table' AND name='gemini_chat_messages'
         `;

@@ -7,6 +7,7 @@ import type { Theme } from '../../../shared/types/theme';
 import { isValidTheme } from '../../../shared/types/theme';
 import { ensureDatabaseUrl } from '../utils/prismaPaths';
 import { safePathJoin } from '../../../shared/utils/pathSecurity';
+import type { PrismaBetterSqlite3 as PrismaBetterSqlite3Factory } from '@prisma/adapter-better-sqlite3';
 
 // #DEBUG: Database service entry point
 Logger.debug('DATABASE', 'Database service module loaded');
@@ -110,7 +111,7 @@ export class DatabaseService {
       const { PrismaClient } = PrismaPkg;
 
       // Prisma 7 SQLite: Must use better-sqlite3 adapter for Electron
-      let adapter: any = null;
+      let adapter: PrismaBetterSqlite3Factory | null = null;
       try {
         if (!databaseUrl) {
           throw new Error('DATABASE_URL resolved to empty or undefined');
@@ -119,9 +120,7 @@ export class DatabaseService {
         const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 
         // For Prisma 7 adapter, pass the connection config (must include url).
-        // The adapter will create the underlying better-sqlite3 client itself so we
-        // must not pass a raw Database instance here (that caused url to be undefined
-        // inside the adapter factory).
+        // The adapter will create the underlying better-sqlite3 client itself.
         adapter = new PrismaBetterSqlite3({ url: databaseUrl });
         Logger.debug('DATABASE', 'better-sqlite3 adapter loaded successfully', { dbPath, databaseUrl });
       } catch (adapterErr) {
@@ -136,7 +135,7 @@ export class DatabaseService {
       this.prisma = new PrismaClient({
         adapter,
         log: this.config.enableLogging ? ['query', 'info', 'warn', 'error'] : [],
-      }) as any as PrismaClient;
+      }) as unknown as PrismaClient;
       
       // 데이터베이스 연결
       await this.prisma.$connect();

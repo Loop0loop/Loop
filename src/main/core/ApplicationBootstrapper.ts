@@ -115,11 +115,32 @@ export class ApplicationBootstrapper {
    */
   private initializeEnvironmentServiceEarly(): void {
     try {
-      const { EnvironmentService } = require('../services/EnvironmentService');
-      // 동기적으로 process.env는 이미 dotenv에 의해 로드됨
-      // EnvironmentService.initialize()는 비동기이므로 약간의 지연이 있을 수 있음
-      // 하지만 이곳에서 config 객체를 프리페칭하면 성능 최적화됨
-      Logger.debug('BOOTSTRAPPER', '⏱️ EnvironmentService early initialization started');
+      // Use a dynamic import so the bundler/runtime resolves the correct output
+      // chunk/file name. Some build outputs leave synchronous requires as-is and
+      // those can fail when running from the `out/main` directory.
+      // We intentionally don't await the initialization here — this is best-effort.
+      void import('../services/EnvironmentService')
+        .then(({ EnvironmentService }) => {
+          try {
+            // Kick off async initialization but don't block construction.
+            void EnvironmentService.initialize();
+            Logger.debug('BOOTSTRAPPER', '⏱️ EnvironmentService early initialization started (async)');
+          } catch (e) {
+            Logger.warn('BOOTSTRAPPER', 'EnvironmentService initialize returned error', e);
+          }
+        })
+        .catch((err) => {
+          // Dynamic import may still fail in some packaging scenarios -> fallback
+          try {
+            // fallback to require (synchronous). If this fails, we catch below.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { EnvironmentService } = require('../services/EnvironmentService');
+            void EnvironmentService.initialize();
+            Logger.debug('BOOTSTRAPPER', '⏱️ EnvironmentService early initialization started (fallback require)');
+          } catch (innerErr) {
+            Logger.warn('BOOTSTRAPPER', 'EnvironmentService early initialization skipped', innerErr);
+          }
+        });
     } catch (error) {
       Logger.warn('BOOTSTRAPPER', 'EnvironmentService early initialization skipped', error);
     }

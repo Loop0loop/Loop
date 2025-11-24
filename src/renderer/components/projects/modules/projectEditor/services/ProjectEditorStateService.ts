@@ -63,6 +63,8 @@ export interface ProjectEditorStateActions {
     setActiveTab: (tabId: string) => void;
     updateTab: (tabId: string, updates: Partial<EditorTab>) => void;
     markAllTabsAsSaved: () => void;
+    // Load cached tab metadata into state (e.g. after reading from localStorage)
+    loadCacheToState: (cache: Record<string, { id: string; title: string; lastAccessedAt: number; chapterId?: string }>) => void;
 }
 
 // 🔥 Chrome-style: 히스토리에서 다음 활성 탭 찾기
@@ -443,6 +445,14 @@ export class ProjectEditorStateService {
                     Logger.debug('PROJECT_EDITOR_STATE', 'All tabs marked as saved');
 
                     return { ...prev, tabs: updatedTabs };
+                });
+            },
+
+            // Load an external metadata cache into state
+            loadCacheToState: (cache: Record<string, { id: string; title: string; lastAccessedAt: number; chapterId?: string }>) => {
+                setState(prev => {
+                    Logger.debug('PROJECT_EDITOR_STATE', 'Loading metadata cache into state', { entries: Object.keys(cache).length });
+                    return { ...prev, tabMetadataCache: cache };
                 });
             },
         };

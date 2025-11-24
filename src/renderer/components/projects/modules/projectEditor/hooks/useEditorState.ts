@@ -107,7 +107,8 @@ export interface UseEditorStateReturn {
  */
 export function useEditorState(projectId: string): UseEditorStateReturn {
   // 1️⃣ 기존 훅들 호출
-  const { state: editorState, actions: editorActions } = useProjectEditorState(projectId);
+  // useProjectEditorState doesn't require a projectId; it returns the shared project-editor state/actions
+  const { state: editorState, actions: editorActions } = useProjectEditorState();
   const uiState = useUIState();
   const { settings, updateSetting } = useSettings();
 
