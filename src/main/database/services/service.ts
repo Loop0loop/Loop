@@ -3,9 +3,9 @@
  * PR-01: re-export the existing implementation so callers can migrate gradually.
  */
 
-import databaseService from '../../services/databaseService';
+import * as typedService from './typedService';
 
-export { databaseService };
-export default databaseService;
+export * from './typedService';
+export default typedService;
 
-// TODO: replace with strongly typed implementation in PR-03
+// TODO (PR-03): fully migrate implementation to this directory and remove legacy file
