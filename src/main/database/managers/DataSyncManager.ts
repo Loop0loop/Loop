@@ -1,9 +1,9 @@
 // 🔥 기가차드 데이터 동기화 매니저 - 클라우드 백업 및 동기화 전문가!
 
-import { Logger } from '../../shared/logger';
-import { BaseManager } from '../common/BaseManager';
-import { Result } from '../../shared/types';
-import { DataRetentionSettingsSchema } from '../settings/types';
+import { Logger } from '../../../shared/logger';
+import { BaseManager } from '../../common/BaseManager';
+import { Result } from '../../../shared/types';
+import { DataRetentionSettingsSchema } from '../../settings/types';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { app } from 'electron';

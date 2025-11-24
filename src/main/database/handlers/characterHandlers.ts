@@ -4,11 +4,11 @@
 // MIGRATION: TODO verify ProjectCharacter type conversion, isActive default value
 
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { Logger } from '../../shared/logger';
-import { IpcResponse, ProjectCharacter } from '../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { IpcResponse, ProjectCharacter } from '../../../shared/types';
 import { prismaService } from '../services/PrismaService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
-import { globalRateLimiter, channelLimiters } from '../services/RateLimiterService';
+import { globalRateLimiter, channelLimiters } from '../../services/RateLimiterService';
 
 /**
  * 🔥 프로젝트 캐릭터 IPC 핸들러

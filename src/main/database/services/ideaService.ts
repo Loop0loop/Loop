@@ -1,8 +1,8 @@
 // 🔥 아이디어 서비스 - Prisma 데이터 연동
-import type { IdeaItem } from '../../main/types/project';
-import type { ProjectNote } from '../../shared/types';
-import { Logger } from '../../shared/logger';
-import { createSuccess, createError, type Result } from '../../shared/common';
+import type { IdeaItem } from '../../types/project';
+import type { ProjectNote } from '../../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { createSuccess, createError, type Result } from '../../../shared/common';
 import { prismaService } from './PrismaService';
 
 // 🔥 아이디어 태그 데이터 타입 (Prisma Json 필드)

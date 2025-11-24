@@ -1,8 +1,8 @@
 // 🔥 시놉시스 서비스 - Prisma 데이터 연동
-import type { PlotPoint } from '../../main/types/project';
-import type { ProjectNote } from '../../shared/types';
-import { Logger } from '../../shared/logger';
-import { createSuccess, createError, type Result } from '../../shared/common';
+import type { PlotPoint } from '../../types/project';
+import type { ProjectNote } from '../../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { createSuccess, createError, type Result } from '../../../shared/common';
 import { prismaService } from './PrismaService';
 
 // 🔥 시놉시스 태그 데이터 타입 (Prisma Json 필드)

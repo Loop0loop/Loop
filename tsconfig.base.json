@@ -1,0 +1,33 @@
+// tsconfig.base.json (이 파일을 새로 만드세요)
+{
+  "compilerOptions": {
+    // --- 님이 설정한 핵심 옵션들 (전부 유지) ---
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true, // 타입 체크만 하고 빌드는 Vite에 맡김
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // --- 님이 설정한 경로 별칭 (전부 유지) ---
+    "paths": {
+      "@/*": ["./src/renderer/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@main/*": ["./src/main/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@preload/*": ["./src/preload/*"]
+    },
+
+    // --- 님이 설정한 최적화/엄격 옵션 (전부 유지) ---
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "useDefineForClassFields": true,
+    "noUncheckedIndexedAccess": true
+  }
+}

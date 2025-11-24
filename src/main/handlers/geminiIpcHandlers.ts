@@ -7,8 +7,8 @@
 import { ipcMain } from 'electron';
 import type { IpcMainEvent } from 'electron';
 import { Logger } from '../../shared/logger';
-import { prismaService } from '../services/PrismaService';
-import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
+import { prismaService } from '../database/services/PrismaService';
+import { databaseMutex } from '../database/services/DatabaseMutexService';  // 🔒 동시성 제어
 import { getGeminiClient } from '../../shared/ai/geminiClient';
 import { analyzeNarrativeKeywords } from '../../shared/narrative/keywordSets';
 import type { GeminiChatRole, GeminiChatMessageDTO, GeminiChatSessionDTO } from '../../shared/types';

@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { getTodayStart } from '../../shared/utils/date';
+import { getTodayStart } from '../../../shared/utils/date';
 
 /**
  * Upsert daily writing activity metrics for a project.

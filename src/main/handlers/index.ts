@@ -3,16 +3,16 @@
 import { Logger } from '../../shared/logger';
 import { ipcMain } from 'electron';
 import { setupKeyboardIpcHandlers } from './keyboardIpcHandlers';
-import { setupDashboardIpcHandlers } from './dashboardIpcHandlers';
+import { setupDashboardIpcHandlers } from '../database/handlers/dashboardIpcHandlers';
 import { setupSettingsIpcHandlers } from './settingsIpcHandlers';
 import { setupTrayIpcHandlers } from './trayIpcHandlers';
 import { setupOAuthIpcHandlers } from './oauthIpcHandlers';
-import { setupProjectIpcHandlers } from './projectIpcHandlers';
+import { setupProjectIpcHandlers } from '../database/handlers/projectIpcHandlers';
 import { setupAIIpcHandlers } from './aiIpcHandlers';
 import { setupFontIpcHandlers } from './fontIpcHandlers';
 import { setupAppIpcHandlers } from './appIpcHandlers';
 // ❌ registerSynopsisStatsHandlers removed - deprecated
-import { setupEpisodeIpcHandlers } from './episodeIpcHandlers';
+import { setupEpisodeIpcHandlers } from '../database/handlers/episodeIpcHandlers';
 import { setupGoogleOAuthIpcHandlers } from './googleOAuthIpcHandlers';
 import { setupGeminiIpcHandlers } from './geminiIpcHandlers';
 
@@ -200,7 +200,7 @@ export class HandlersManager {
           'gemini:get-status',
         ]),
         this.setupHandler('synopsis-stats', async () => {
-          const { registerSynopsisStatsHandlers } = await import('./synopsis-stats');
+          const { registerSynopsisStatsHandlers } = await import('../database/handlers/synopsis-stats');
           registerSynopsisStatsHandlers();
         }, [
           'synopsis:getWritingActivity',

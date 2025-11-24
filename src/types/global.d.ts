@@ -90,6 +90,6 @@ declare global {
     } | undefined;
 
     var windowTracker: import('../main/keyboard/WindowTracker').WindowTracker | undefined;
-    var databaseManager: import('../main/managers/DatabaseManager').DatabaseManager | undefined;
+    var databaseManager: import('../main/database/managers/DatabaseManager').DatabaseManager | undefined;
   }
 }

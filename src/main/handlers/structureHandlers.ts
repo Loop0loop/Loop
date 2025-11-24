@@ -10,9 +10,9 @@ import { Logger } from '../../shared/logger';
 import { IpcResponse, ProjectStructure } from '../../shared/types';
 import type { StructureStatus } from '../../shared/constants/enums';
 import { calculateWordCount } from '../../shared/utils/text';
-import { prismaService } from '../services/PrismaService';
-import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
-import { recordDailyWritingActivity } from '../utils/writingActivity';
+import { prismaService } from '../database/services/PrismaService';
+import { databaseMutex } from '../database/services/DatabaseMutexService';  // 🔒 동시성 제어
+import { recordDailyWritingActivity } from '../database/utils/writingActivity';
 
 /**
  * 🔥 프로젝트 구조 IPC 핸들러

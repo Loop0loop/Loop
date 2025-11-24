@@ -1,9 +1,9 @@
 // 🔥 기가차드 대시보드 IPC 핸들러 - 실시간 데이터 전송!
 
 import { ipcMain } from 'electron';
-import { Logger } from '../../shared/logger';
-import { IPC_CHANNELS } from '../../shared/types';
-import { createSafeIpcHandler, createSafeAsyncIpcHandler } from '../../shared/ipc-utils';
+import { Logger } from '../../../shared/logger';
+import { IPC_CHANNELS } from '../../../shared/types';
+import { createSafeIpcHandler, createSafeAsyncIpcHandler } from '../../../shared/ipc-utils';
 import { databaseService } from '../services/databaseService';
 
 // #DEBUG: Dashboard IPC handlers entry point

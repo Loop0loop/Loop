@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { promises as fsPromises, existsSync } from 'fs';
 import { join, dirname } from 'path';
-import { Logger } from '../../shared/logger';
+import { Logger } from '../../../shared/logger';
 
 const COMPONENT = 'PRISMA_PATHS';
 const DB_FILENAME = 'loop.db';

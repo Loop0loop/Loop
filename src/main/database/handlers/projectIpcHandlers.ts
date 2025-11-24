@@ -6,11 +6,11 @@
 
 import { registerProjectCrudHandlers } from './projectCrudHandlers';
 import { registerCharacterHandlers } from './characterHandlers';
-import { registerStructureHandlers } from './structureHandlers';
+import { registerStructureHandlers } from '../../handlers/structureHandlers';
 import { registerNoteHandlers } from './noteHandlers';
 import { registerIdeaHandlers } from './ideaHandlers';
-import { registerShellHandlers } from './shellHandlers';
-import { Logger } from '../../shared/logger';
+import { registerShellHandlers } from '../../handlers/shellHandlers';
+import { Logger } from '../../../shared/logger';
 
 /**
  * 🔥 프로젝트 IPC 핸들러 설정 - 도메인별 분리

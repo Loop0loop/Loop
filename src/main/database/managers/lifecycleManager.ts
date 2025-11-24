@@ -4,7 +4,7 @@
  * manager implementation.
  */
 
-import { databaseManager } from '../../managers/DatabaseManager';
+import { databaseManager } from './DatabaseManager';
 
 export { databaseManager };
 export default databaseManager;

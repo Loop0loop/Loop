@@ -389,7 +389,7 @@ cutoffDate.setDate(cutoffDate.getDate() - days);
 // src/main/handlers/aiIpcHandlers.ts
 const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-// src/main/managers/DatabaseManager.ts
+// src/main/database/managers/DatabaseManager.ts
 since.setDate(since.getDate() - days);
 ```
 

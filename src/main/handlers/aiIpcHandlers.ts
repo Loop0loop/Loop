@@ -3,8 +3,8 @@
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Logger } from '../../shared/logger';
 import { openAIService } from '../services/OpenAIService';
-import { DatabaseService } from '../services/databaseService';
-import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
+import { DatabaseService } from '../database/services/databaseService';
+import { databaseMutex } from '../database/services/DatabaseMutexService';  // 🔒 동시성 제어
 
 // #DEBUG: AI IPC handlers entry point
 Logger.debug('AI_IPC_HANDLERS', 'AI IPC handlers module loaded');

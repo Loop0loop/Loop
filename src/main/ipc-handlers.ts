@@ -4,13 +4,13 @@ import { ipcMain } from 'electron';
 import type { IpcMainEvent } from 'electron';
 import { Logger } from '../shared/logger';
 import { setupKeyboardIpcHandlers } from './handlers/keyboardIpcHandlers';
-import { setupDashboardIpcHandlers } from './handlers/dashboardIpcHandlers';
+import { setupDashboardIpcHandlers } from './database/handlers/dashboardIpcHandlers';
 import { setupSettingsIpcHandlers } from './handlers/settingsIpcHandlers';
 import { setupTrayIpcHandlers } from './handlers/trayIpcHandlers';
-import { setupProjectIpcHandlers } from './handlers/projectIpcHandlers';
+import { setupProjectIpcHandlers } from './database/handlers/projectIpcHandlers';
 import { setupOAuthIpcHandlers } from './handlers/oauthIpcHandlers';
 import { setupAIIpcHandlers } from './handlers/aiIpcHandlers';
-import { setupEpisodeIpcHandlers } from './handlers/episodeIpcHandlers';
+import { setupEpisodeIpcHandlers } from './database/handlers/episodeIpcHandlers';
 
 // #DEBUG: IPC handlers entry point
 Logger.debug('IPC_HANDLERS', 'IPC handlers module loaded');
@@ -187,7 +187,7 @@ export async function setupAllIpcHandlers(): Promise<void> {
 
     // Synopsis Stats IPC 핸들러
     if (!registeredHandlers.has('synopsis-stats')) {
-      const { registerSynopsisStatsHandlers } = await import('./handlers/synopsis-stats');
+      const { registerSynopsisStatsHandlers } = await import('./database/handlers/synopsis-stats');
       registerSynopsisStatsHandlers();
       registeredHandlers.add('synopsis-stats');
       Logger.info('IPC_HANDLERS', 'Synopsis Stats IPC handlers setup complete');

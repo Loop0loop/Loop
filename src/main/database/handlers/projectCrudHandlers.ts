@@ -4,12 +4,12 @@
 // MIGRATION: TODO verify Prisma disconnect, error handling, 'new' ID edge case
 
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { Logger } from '../../shared/logger';
-import { IpcResponse, Project } from '../../shared/types';
-import type { KoreanWebNovelGenre, ProjectStatus } from '../../shared/constants/enums';
+import { Logger } from '../../../shared/logger';
+import { IpcResponse, Project } from '../../../shared/types';
+import type { KoreanWebNovelGenre, ProjectStatus } from '../../../shared/constants/enums';
 import { prismaService } from '../services/PrismaService';
-import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../shared/validation/projectValidation';
-import { globalRateLimiter, channelLimiters } from '../services/RateLimiterService';
+import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../../shared/validation/projectValidation';
+import { globalRateLimiter, channelLimiters } from '../../services/RateLimiterService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
 
 /**

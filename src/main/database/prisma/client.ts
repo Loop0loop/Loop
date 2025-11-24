@@ -6,7 +6,7 @@
 
 import { Logger } from '../../../shared/logger';
 
-import { ensureDatabaseUrl } from '../../utils/prismaPaths';
+import { ensureDatabaseUrl } from '../utils/prismaPaths';
 
 // Use `import type` for runtime-free typings so code uses dynamic require at runtime
 import type { PrismaClient } from '@prisma/client';

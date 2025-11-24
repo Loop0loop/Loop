@@ -1,10 +1,10 @@
 'use strict';
 
 // 🔥 Prisma 싱글톤 서비스 - 연결 풀링으로 성능 개선
-import { Logger } from '../../shared/logger';
-import { Project, ProjectCharacter, ProjectStructure, ProjectNote } from '../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { Project, ProjectCharacter, ProjectStructure, ProjectNote } from '../../../shared/types';
 import { ensureDatabaseUrl } from '../utils/prismaPaths';
-import { safePathJoin } from '../../shared/utils/pathSecurity';
+import { safePathJoin } from '../../../shared/utils/pathSecurity';
 
 // PrismaClient 타입 정의 (런타임에 동적 로드)
 type PrismaClient = any;
@@ -83,8 +83,18 @@ class PrismaService {
 
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('PRISMA_SERVICE', 'Loading Prisma client from @prisma/client');
-       
-      const { PrismaClient } = require('@prisma/client');
+      let PrismaPkg: any;
+      try {
+        PrismaPkg = require('@prisma/client');
+      } catch (err) {
+        Logger.error('PRISMA_SERVICE', 'Failed to require @prisma/client', err);
+        throw new Error(
+          'Prisma client load failed. Run `pnpm install` and `pnpm db:generate`. ' +
+            'Missing module "@prisma/client-runtime-utils" indicates the runtime dependency was not installed.'
+        );
+      }
+
+      const { PrismaClient } = PrismaPkg;
 
       this.client = new PrismaClient({
         datasources: {

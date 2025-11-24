@@ -6,11 +6,11 @@
 
 import { ipcMain } from 'electron';
 import type { IpcMainEvent } from 'electron';
-import { Logger } from '../../shared/logger';
+import { Logger } from '../../../shared/logger';
 import { EpisodeService } from '../services/EpisodeService';
 import { prismaService } from '../services/PrismaService';
-import { calculateWordCount } from '../../shared/utils/text';
-import { globalRateLimiter } from '../services/RateLimiterService';
+import { calculateWordCount } from '../../../shared/utils/text';
+import { globalRateLimiter } from '../../services/RateLimiterService';
 import type {
   CreateEpisodeInput,
   UpdateEpisodeInput,
@@ -19,7 +19,7 @@ import type {
   Episode,
   EpisodeStatus,
   FiveActType,
-} from '../../shared/types/episode';
+} from '../../../shared/types/episode';
 
 const episodeService = new EpisodeService();
 

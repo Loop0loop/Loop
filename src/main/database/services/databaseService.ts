@@ -1,12 +1,12 @@
 // 🔥 기가차드 데이터베이스 서비스 - Prisma ORM 전용!
 
-import { Logger } from '../../shared/logger';
-import { createSuccess, createError, type Result, isObject } from '../../shared/common';
-import { TypingSession, TypingStats, UserPreferences, Project, ProjectCharacter } from '../../shared/types';
-import type { Theme } from '../../shared/types/theme';
-import { isValidTheme } from '../../shared/types/theme';
+import { Logger } from '../../../shared/logger';
+import { createSuccess, createError, type Result, isObject } from '../../../shared/common';
+import { TypingSession, TypingStats, UserPreferences, Project, ProjectCharacter } from '../../../shared/types';
+import type { Theme } from '../../../shared/types/theme';
+import { isValidTheme } from '../../../shared/types/theme';
 import { ensureDatabaseUrl } from '../utils/prismaPaths';
-import { safePathJoin } from '../../shared/utils/pathSecurity';
+import { safePathJoin } from '../../../shared/utils/pathSecurity';
 
 // #DEBUG: Database service entry point
 Logger.debug('DATABASE', 'Database service module loaded');
@@ -92,8 +92,22 @@ export class DatabaseService {
 
       // 🔥 Prisma 클라이언트 로딩 - CommonJS require 방식 (안정적)
       Logger.info('DATABASE', 'Loading Prisma client from @prisma/client');
-       
-      const { PrismaClient } = require('@prisma/client');
+
+      // Guard against packaging issues where the Prisma runtime utils may not be available
+      // (e.g. "Cannot find module '@prisma/client-runtime-utils'"). Provide a helpful error
+      // message so maintainers know what to run (pnpm install && pnpm db:generate).
+      let PrismaPkg: any;
+      try {
+        PrismaPkg = require('@prisma/client');
+      } catch (err) {
+        Logger.error('DATABASE', 'Failed to require @prisma/client', err);
+        return createError(
+          'Prisma client load failed. Make sure dependencies are installed and run `pnpm db:generate`. ' +
+            'If you see "Cannot find module \"@prisma/client-runtime-utils\"", reinstall @prisma/client and re-run generation.'
+        );
+      }
+
+      const { PrismaClient } = PrismaPkg;
 
       this.prisma = new PrismaClient({
         datasources: {

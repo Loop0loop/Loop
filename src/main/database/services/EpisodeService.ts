@@ -17,9 +17,9 @@ import type {
   EpisodeFilterOptions,
   EpisodeSortOptions,
   EpisodeStats
-} from '../../shared/types/episode';
-import type { PlatformType } from '../../shared/constants/platform-requirements';
-import { calculateWordCount } from '../../shared/utils/text';
+} from '../../../shared/types/episode';
+import type { PlatformType } from '../../../shared/constants/platform-requirements';
+import { calculateWordCount } from '../../../shared/utils/text';
 import { recordDailyWritingActivity } from '../utils/writingActivity';
 
 /**

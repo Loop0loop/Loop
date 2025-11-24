@@ -4,9 +4,9 @@
 // MIGRATION: TODO verify IdeaService integration, error propagation
 
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { Logger } from '../../shared/logger';
-import { IpcResponse } from '../../shared/types';
-import type { IdeaItem } from '../types/project';
+import { Logger } from '../../../shared/logger';
+import { IpcResponse } from '../../../shared/types';
+import type { IdeaItem } from '../../types/project';
 import { IdeaService } from '../services/ideaService';
 
 /**

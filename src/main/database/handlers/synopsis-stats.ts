@@ -10,11 +10,11 @@
 import type { PrismaClient } from '@prisma/client';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { prismaService } from '../services/PrismaService';
-import { Logger } from '../../shared/logger';
-import { formatDateISO, formatDateShort, getTodayStart } from '../../shared/utils/date';
+import { Logger } from '../../../shared/logger';
+import { formatDateISO, formatDateShort, getTodayStart } from '../../../shared/utils/date';
 import { recordDailyWritingActivity } from '../utils/writingActivity';
-import { calculateWordCount } from '../../shared/utils/text';
-import type { DashboardSummary, ForeshadowSummary, TimelineEpisodeSummary } from '../../shared/types';
+import { calculateWordCount } from '../../../shared/utils/text';
+import type { DashboardSummary, ForeshadowSummary, TimelineEpisodeSummary } from '../../../shared/types';
 
 // 🔥 Symbol 기반 컴포넌트 이름
 const SYNOPSIS_STATS_HANDLER = Symbol.for('SYNOPSIS_STATS_HANDLER');

@@ -53,9 +53,9 @@ interface MockPrismaClient {
 
 // 🔥 기가차드 데이터베이스 관리자 - Prisma 통합 관리
 
-import { Logger } from '../../shared/logger';
-import { BaseManager } from '../common/BaseManager';
-import { Result, TypingSession, TypingStats, UserPreferences } from '../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { BaseManager } from '../../common/BaseManager';
+import { Result, TypingSession, TypingStats, UserPreferences } from '../../../shared/types';
 import { existsSync, copyFileSync, statSync, mkdirSync, readFileSync } from 'fs';
 import { promises as fsPromises } from 'fs';
 import { join, dirname } from 'path';

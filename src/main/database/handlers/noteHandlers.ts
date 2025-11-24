@@ -4,8 +4,8 @@
 // MIGRATION: TODO verify tags array handling, isPinned/isArchived defaults
 
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { Logger } from '../../shared/logger';
-import { IpcResponse, ProjectNote } from '../../shared/types';
+import { Logger } from '../../../shared/logger';
+import { IpcResponse, ProjectNote } from '../../../shared/types';
 import { prismaService } from '../services/PrismaService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
 

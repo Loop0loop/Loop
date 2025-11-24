@@ -6,14 +6,14 @@ import { unifiedPermissionManager } from '../utils/UnifiedPermissionManager';
 
 // 🔥 기존 매니저들 import (중복 방지)
 import { memoryManager } from '../managers/MemoryManager';
-import { dataSyncManager } from '../managers/DataSyncManager';
+import { dataSyncManager } from '../database/managers/DataSyncManager';
 import { BrowserDetector } from '../managers/BrowserDetector';
 import { getMenuManager } from '../managers/MenuManager';
 import { getShortcutsManager } from '../managers/ShortcutsManager';
 import { getTrayManager } from '../managers/TrayManager';
 import { handlersManager } from '../managers/HandlersManager';
 import { sessionManager } from '../managers/SessionManager';
-import { databaseManager } from '../managers/DatabaseManager';
+import { databaseManager } from '../database/managers/lifecycleManager';
 import { updaterManager } from '../managers/UpdaterManager';
 
 // 🔥 BrowserDetector 인스턴스 생성
@@ -254,7 +254,7 @@ export class ManagerCoordinator {
   private async initializeDatabase(): Promise<void> {
     try {
       // 🔥 Prisma 마이그레이션 먼저 실행 (DB 스키마 동기화)
-      const { prismaService } = await import('../services/PrismaService');
+      const { prismaService } = await import('../database/services/PrismaService');
       try {
         await prismaService.runMigrations();
         Logger.info(this.componentName, '✅ Prisma migrations 실행 완료');
@@ -274,14 +274,15 @@ export class ManagerCoordinator {
 
       // 🔥 databaseService도 초기화 (Analytics API용)
       if (!this.initializedManagers.has('databaseService')) {
-        const { databaseService } = await import('../services/databaseService');
+        const { databaseService } = await import('../database/services/databaseService');
         const result = await databaseService.initialize();
         if (result.success) {
           this.initializedManagers.add('databaseService');
           Logger.info(this.componentName, '✅ databaseService 초기화 완료');
         } else {
-          Logger.error(this.componentName, '❌ databaseService 초기화 실패', result.error);
-          throw new Error(`databaseService 초기화 실패: ${result.error}`);
+          // Non-fatal: Analytics / additional DB service features should not block app bootstrap.
+          // Log the detailed error and continue; developers can opt to fix the prisma client or run db:generate.
+          Logger.warn(this.componentName, '⚠️ databaseService 초기화 실패 — 계속 진행합니다 (데이터분석/기능이 제한될 수 있음)', result.error);
         }
       }
     } catch (error) {

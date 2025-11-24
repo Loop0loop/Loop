@@ -13,7 +13,7 @@
  */
 
 import AsyncLock from 'async-lock';
-import { Logger } from '../../shared/logger';
+import { Logger } from '../../../shared/logger';
 
 /**
  * 🔒 데이터베이스 뮤텍스 싱글톤

@@ -1,6 +1,6 @@
 import { createSuccess, createError, type Result } from '../../../shared/common';
 import type { TypingSession, TypingStats, UserPreferences, Project, ProjectCharacter } from '../../../shared/types';
-import underlyingService from '../../../services/databaseService';
+import underlyingService from './databaseService';
 
 /**
  * Typed adapter around the legacy databaseService.
