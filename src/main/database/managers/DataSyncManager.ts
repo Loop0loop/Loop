@@ -251,12 +251,12 @@ export class DataSyncManager extends BaseManager {
       const { runSyncOperation } = await import('./data-sync/runner');
       const result = await runSyncOperation(this.syncConfig, this.syncStats, this.conflictQueue, this.syncLogs);
       if (result.success) {
-        this.logSyncOperation('upload', 'success', 'Sync completed successfully');
+        engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'upload', status: 'success', message: 'Sync completed successfully' });
       } else {
-        this.logSyncOperation('upload', 'failed', `Sync failed: ${result.error}`);
+        engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'upload', status: 'failed', message: `Sync failed: ${result.error}` });
       }
     } catch (err) {
-      this.logSyncOperation('upload', 'failed', 'Sync failed', err as Error);
+      engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'upload', status: 'failed', message: (err as Error).message });
       Logger.error(this.componentName, 'Sync operation failed', err);
     } finally {
       this.currentStatus = 'idle';
@@ -323,12 +323,12 @@ export class DataSyncManager extends BaseManager {
       const { backupInfo, backupHistory } = await performBackupOperation(this.dataDirectory, this.syncConfig, this.backupHistory, this.syncStats, this.syncConfig.maxBackups);
       this.backupHistory = backupHistory;
 
-      this.logSyncOperation('upload', 'success', 'Backup completed successfully');
+      engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'upload', status: 'success', message: 'Backup completed successfully' });
 
       Logger.info(this.componentName, 'Backup completed successfully', { id: backupInfo.id, size: backupInfo.size, itemCount: backupInfo.itemCount });
 
     } catch (error) {
-      this.logSyncOperation('upload', 'failed', 'Backup failed', error as Error);
+      engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'upload', status: 'failed', message: (error as Error).message });
       Logger.error(this.componentName, 'Backup operation failed', error);
     }
   }
@@ -364,15 +364,7 @@ export class DataSyncManager extends BaseManager {
   /**
    * 동기화 로그 기록
    */
-  private logSyncOperation(
-    operation: SyncLog['operation'],
-    status: SyncLog['status'],
-    message: string,
-    error?: Error
-  ): void {
-    const log: SyncLog = { id: `log_${Date.now()}`, timestamp: new Date(), operation, status, message, error: error?.message };
-    engineLogOperation(this.syncLogs, log);
-  }
+  // log operations are handled via engine.logOperation helper
 
   /**
    * 공개 API: 수동 동기화
@@ -470,13 +462,13 @@ export class DataSyncManager extends BaseManager {
       await restoreFromBackupOperation(backupId, this.backupHistory);
 
       // TODO: apply parsed data to DB - currently stubbed
-      this.logSyncOperation('download', 'success', `Restored from backup ${backupId}`);
+      engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'download', status: 'success', message: `Restored from backup ${backupId}` });
       Logger.info(this.componentName, 'Backup restored successfully', { backupId });
 
       return { success: true };
     } catch (error) {
       const err = error as Error;
-      this.logSyncOperation('download', 'failed', `Failed to restore from backup ${backupId}`, err);
+      engineLogOperation(this.syncLogs, { id: `log_${Date.now()}`, timestamp: new Date(), operation: 'download', status: 'failed', message: err.message });
       Logger.error(this.componentName, 'Failed to restore from backup', err);
       return { success: false, error: err.message };
     }
@@ -486,25 +478,8 @@ export class DataSyncManager extends BaseManager {
    * 🔥 데이터 보존 정책 업데이트 메서드 - any 타입 제거용
    */
   public updateRetentionPolicy(policy: DataRetentionSettingsSchema): void {
-    Logger.info(this.componentName, 'Retention policy updated', policy);
-    
-    // 보존 정책에 따른 로직 구현
-    const retentionPeriod = policy.retentionPeriod;
-    const autoCleanup = policy.autoDeleteOldData;
-    
-    Logger.debug(this.componentName, `Retention period set to: ${retentionPeriod} days`);
-    Logger.debug(this.componentName, `Auto cleanup ${autoCleanup ? 'enabled' : 'disabled'}`);
-    
-    // 실제 보존 정책 적용 로직
-    // 타이핑 데이터 설정
-    if (policy.typingData?.enabled) {
-      Logger.debug(this.componentName, `Typing data retention: ${policy.typingData.retentionDays} days`);
-    }
-    
-    // 키 입력 데이터 설정
-    if (policy.keystrokeData?.enabled) {
-      Logger.debug(this.componentName, `Keystroke data retention: ${policy.keystrokeData.retentionDays} days`);
-    }
+    // delegate to small helper
+    void import('./data-sync/policy').then(m => m.applyRetentionPolicy(policy)).catch(err => Logger.error(this.componentName, 'Failed to apply retention policy', err));
   }
 }
 

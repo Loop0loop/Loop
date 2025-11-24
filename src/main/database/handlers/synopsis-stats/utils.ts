@@ -151,3 +151,105 @@ export function isCompletedChapter(chapter: { status: string; wordCount: number 
   const status = chapter.status;
   return status.includes('complete') || status.includes('finish') || status === 'done';
 }
+
+export function buildDashboardSummary(
+  projectId: string,
+  chapters: ChapterSnapshot[],
+  characterCount: number,
+  foreshadowNotes: Array<{ id: string; title: string; introducedEpisode: number | null; resolvedEpisode: number | null; importance: string | null }>
+): DashboardSummary {
+  const normalizedChapters = chapters.map((chapter, index) => {
+    const wordCount = chapter.wordCount ?? 0;
+    const sortOrder = chapter.sortOrder ?? chapter.episodeNumber ?? index;
+    const episodeNumber = chapter.episodeNumber ?? index + 1;
+    return {
+      ...chapter,
+      wordCount,
+      sortOrder,
+      status: (chapter.status ?? 'planned').toLowerCase(),
+      episodeNumber,
+    };
+  });
+
+  const totalEpisodes = normalizedChapters.length;
+  const totalWordCount = normalizedChapters.reduce((sum, chapter) => sum + chapter.wordCount, 0);
+  const completedEpisodes = normalizedChapters.filter(isCompletedChapter).length;
+  const publishedEpisodes = normalizedChapters.filter(chapter => chapter.status.includes('publish') || chapter.status === 'released').length;
+  const reserveEpisodes = Math.max(0, completedEpisodes - publishedEpisodes);
+  const averageWordCount = totalEpisodes > 0 ? Math.round(totalWordCount / totalEpisodes) : 0;
+  const unresolvedForeshadows = foreshadowNotes.filter(note => note.resolvedEpisode == null).length;
+  const lastUpdated = normalizedChapters.reduce<Date | null>((latest, chapter) => {
+    if (!latest || latest < chapter.updatedAt) {
+      return chapter.updatedAt;
+    }
+    return latest;
+  }, null) ?? new Date();
+
+  const draftEpisodes = normalizedChapters.filter(chapter => chapter.status === 'planned' || chapter.status.includes('draft')).length;
+  const inProgressEpisodes = normalizedChapters.filter(chapter => chapter.status.includes('progress') || chapter.status.includes('writing')).length;
+
+  const reserves = {
+    totalEpisodes,
+    draftEpisodes,
+    inProgressEpisodes,
+    completedEpisodes,
+    publishedEpisodes,
+    reserveCount: reserveEpisodes,
+    lastPublishedDate: computeLastPublishedDate(normalizedChapters),
+    nextScheduledPublish: null,
+    totalWordCount,
+    averageWordCount,
+  };
+
+  const timelineEpisodes: TimelineEpisodeSummary[] = normalizedChapters
+    .map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      episodeNumber: chapter.episodeNumber,
+      wordCount: chapter.wordCount,
+      sortOrder: chapter.sortOrder ?? chapter.episodeNumber ?? 0,
+      status: chapter.status,
+      act: mapStatusToAct(chapter.status),
+      updatedAt: chapter.updatedAt.toISOString(),
+    }))
+    .sort((a, b) => {
+      const left = a.sortOrder ?? a.episodeNumber ?? 0;
+      const right = b.sortOrder ?? b.episodeNumber ?? 0;
+      if (left === right) {
+        return (a.episodeNumber ?? 0) - (b.episodeNumber ?? 0);
+      }
+      return left - right;
+    });
+
+  const foreshadows: ForeshadowSummary[] = foreshadowNotes.map(note => ({
+    id: note.id,
+    title: note.title,
+    introducedEpisode: note.introducedEpisode ?? null,
+    resolvedEpisode: note.resolvedEpisode ?? null,
+    importance: note.importance ?? null,
+  }));
+
+  const consistencyScore = computeConsistencyScore({
+    totalEpisodes,
+    completedEpisodes,
+    unresolvedForeshadows,
+    characterCount,
+  });
+
+  return {
+    projectId,
+    totalEpisodes,
+    completedEpisodes,
+    publishedEpisodes,
+    reserveEpisodes,
+    totalWordCount,
+    averageWordCount,
+    characterCount,
+    unresolvedForeshadows,
+    consistencyScore,
+    lastUpdated: lastUpdated.toISOString(),
+    reserves,
+    timelineEpisodes,
+    foreshadows,
+  };
+}
