@@ -1,6 +1,6 @@
 // 🔥 기가차드 윈도우 매니저 - 타입 안전한 윈도우 관리 시스템
 
-import { BrowserWindow, screen, Event, app } from 'electron';
+import { BrowserWindow, screen, Event, app, type RenderProcessGoneDetails } from 'electron';
 import { join } from 'path';
 import { Logger } from '../../shared/logger';
 import { WindowInfo } from '../../shared/types';
@@ -9,8 +9,6 @@ import { Platform } from '../utils/platform';
 import { StaticServer } from '../utils/StaticServer';
 import { CSP } from './security'; // 🔥 보안 정책 import
 import { DEV_TOOLS } from '../constants';
-import { RenderProcessGoneDetails } from '../types/electron-events';
-
 
 // #DEBUG: Window manager entry point
 Logger.debug('WINDOW', 'Window manager module loaded');

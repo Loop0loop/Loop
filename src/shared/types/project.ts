@@ -38,14 +38,14 @@ export interface ProjectCharacter {
   projectId: string;
   name: string;
   role: string;
-  description?: string;
-  notes?: string;
-  appearance?: string;
-  personality?: string;
-  background?: string;
-  goals?: string;
-  conflicts?: string;
-  avatar?: string;
+  description?: string | null;
+  notes?: string | null;
+  appearance?: string | null;
+  personality?: string | null;
+  background?: string | null;
+  goals?: string | null;
+  conflicts?: string | null;
+  avatar?: string | null;
   // make these optional to allow backward-compatible conversions from DB
   color?: string;
   sortOrder?: number;
@@ -65,12 +65,12 @@ export interface ProjectStructure {
   projectId: string;
   type: string;
   title: string;
-  description?: string;
-  content?: string;
+  description?: string | null;
+  content?: string | null;
   status: StructureStatus;
   wordCount: number;
   sortOrder: number;
-  parentId?: string;
+  parentId?: string | null;
   depth: number;
   color: string;
   isActive: boolean;

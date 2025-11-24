@@ -189,15 +189,17 @@ export function isValidEpisodeStatus(value: unknown): value is EpisodeStatus {
  * - 'active': 활성
  * - 'completed': 완료
  */
-export type StructureStatus = 'draft' | 'active' | 'completed';
+export type StructureStatus = 'draft' | 'active' | 'completed' | 'planned';
 
 export const STRUCTURE_STATUSES: readonly StructureStatus[] = [
+  'planned',
   'draft',
   'active',
   'completed',
 ];
 
 export const STRUCTURE_STATUS_LABELS: Record<StructureStatus, string> = {
+  'planned': '계획됨',
   'draft': '초안',
   'active': '활성',
   'completed': '완료',

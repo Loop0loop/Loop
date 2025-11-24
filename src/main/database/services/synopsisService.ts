@@ -1,21 +1,14 @@
 // 🔥 시놉시스 서비스 - Prisma 데이터 연동
 import type { PlotPoint } from '../../types/project';
-import type { ProjectNote } from '../../../shared/types';
 import { Logger } from '../../../shared/logger';
 import { createSuccess, createError, type Result } from '../../../shared/common';
 import { prismaService } from './PrismaService';
-
-// 🔥 시놉시스 태그 데이터 타입 (Prisma Json 필드)
-interface SynopsisTags {
-  act?: number;
-  type?: string;
-  characters?: string[];
-  location?: string;
-  notes?: string;
-  order?: number;
-  duration?: number;
-  importance?: string;
-}
+import {
+  extractPlotPointTags,
+  plotPointCreateInput,
+  plotPointUpdateInput,
+  projectNoteToPlotPoint,
+} from '../mappers/projectNoteMapper';
 
 // 🔥 시놉시스 서비스
 export class SynopsisService {
@@ -24,36 +17,17 @@ export class SynopsisService {
     try {
       const client = await prismaService.getClient();
       const plotNotes = await client.projectNote.findMany({
-        where: { 
+        where: {
           projectId,
           type: 'plot'
         },
         orderBy: [
           { createdAt: 'desc' }
         ]
-      }) as ProjectNote[];
-
-      // ProjectNote를 PlotPoint로 매핑
-      const mappedPlots: PlotPoint[] = plotNotes.map((note) => {
-        const tagsData = (note.tags as SynopsisTags) || {};
-        return {
-          id: note.id,
-          act: (tagsData.act as PlotPoint['act']) || 1,
-          title: note.title,
-          description: note.content || '',
-          type: (tagsData.type as PlotPoint['type']) || 'setup',
-          characters: Array.isArray(tagsData.characters) ? tagsData.characters : [],
-          location: tagsData.location || '',
-          notes: tagsData.notes || '',
-          order: tagsData.order || 0,
-          duration: tagsData.duration || 0,
-          importance: (tagsData.importance as PlotPoint['importance']) || 'medium',
-          createdAt: note.createdAt,
-          updatedAt: note.updatedAt
-        };
       });
 
-      // act와 order로 정렬
+      const mappedPlots = plotNotes.map(projectNoteToPlotPoint);
+
       mappedPlots.sort((a, b) => {
         if (a.act !== b.act) return a.act - b.act;
         return a.order - b.order;
@@ -79,28 +53,9 @@ export class SynopsisService {
         orderBy: [
           { createdAt: 'desc' }
         ]
-      }) as ProjectNote[];
+      });
 
-      // ProjectNote를 PlotPoint로 매핑하고 특정 막만 필터링
-      const mappedPlots: PlotPoint[] = plotNotes
-        .map((note) => {
-          const tagsData = (note.tags as SynopsisTags) || {};
-          return {
-            id: note.id,
-            act: (tagsData.act as PlotPoint['act']) || 1,
-            title: note.title,
-            description: note.content || '',
-            type: (tagsData.type as PlotPoint['type']) || 'setup',
-            characters: Array.isArray(tagsData.characters) ? tagsData.characters : [],
-            location: tagsData.location || '',
-            notes: tagsData.notes || '',
-            order: tagsData.order || 0,
-            duration: tagsData.duration || 0,
-            importance: (tagsData.importance as PlotPoint['importance']) || 'medium',
-            createdAt: note.createdAt,
-            updatedAt: note.updatedAt
-          };
-        })
+      const mappedPlots = plotNotes.map(projectNoteToPlotPoint)
         .filter((plot) => plot.act === act)
         .sort((a, b) => a.order - b.order);
 
@@ -118,44 +73,11 @@ export class SynopsisService {
       const client = await prismaService.getClient();
       
       // PlotPoint를 ProjectNote 모델에 맞게 변환
-      const plotData = {
-        projectId,
-        title: plot.title,
-        content: plot.description,
-        type: 'plot',
-        tags: {
-          act: plot.act,
-          type: plot.type,
-          characters: plot.characters,
-          location: plot.location,
-          notes: plot.notes,
-          order: plot.order,
-          duration: plot.duration,
-          importance: plot.importance
-        }
-      };
-
       const newNote = await client.projectNote.create({
-        data: plotData
+        data: plotPointCreateInput(projectId, plot)
       });
 
-      // ProjectNote를 PlotPoint로 매핑
-      const tagsData = (newNote.tags as SynopsisTags) || {};
-      const mappedPlot: PlotPoint = {
-        id: newNote.id,
-        act: (tagsData.act as PlotPoint['act']) || 1,
-        title: newNote.title,
-        description: newNote.content || '',
-        type: (tagsData.type as PlotPoint['type']) || 'setup',
-        characters: Array.isArray(tagsData.characters) ? tagsData.characters : [],
-        location: tagsData.location || '',
-        notes: tagsData.notes || '',
-        order: tagsData.order || 0,
-        duration: tagsData.duration || 0,
-        importance: (tagsData.importance as PlotPoint['importance']) || 'medium',
-        createdAt: newNote.createdAt,
-        updatedAt: newNote.updatedAt
-      };
+      const mappedPlot = projectNoteToPlotPoint(newNote);
 
       Logger.info('SYNOPSIS_SERVICE', '플롯 포인트 생성 완료', { id: mappedPlot.id, title: mappedPlot.title });
       return createSuccess(mappedPlot);
@@ -180,52 +102,13 @@ export class SynopsisService {
       }
 
       // 기존 tags 데이터 파싱
-      const existingTags = (existingNote.tags as SynopsisTags) || {};
-      
-      // ProjectNote 모델용 데이터 변환
-      const updateData: Partial<Pick<ProjectNote, 'title' | 'content' | 'tags' | 'type' | 'updatedAt'>> = {
-        type: 'plot',
-        updatedAt: new Date()
-      };
-      
-      if (updates.title) updateData.title = updates.title;
-      if (updates.description) updateData.content = updates.description;
-      
-      // tags 필드에 플롯 관련 메타데이터 저장
-      const updatedTags = { ...existingTags };
-      if (updates.act) updatedTags.act = updates.act;
-      if (updates.type) updatedTags.type = updates.type;
-      if (updates.characters) updatedTags.characters = updates.characters;
-      if (updates.location) updatedTags.location = updates.location;
-      if (updates.notes) updatedTags.notes = updates.notes;
-      if (updates.order !== undefined) updatedTags.order = updates.order;
-      if (updates.duration !== undefined) updatedTags.duration = updates.duration;
-      if (updates.importance) updatedTags.importance = updates.importance;
-      
-      updateData.tags = updatedTags as any;
-
+      const updateData = plotPointUpdateInput(updates, extractPlotPointTags(existingNote));
       const updatedNote = await client.projectNote.update({
         where: { id },
         data: updateData
       });
 
-      // ProjectNote를 PlotPoint로 매핑
-      const tagsData = (updatedNote.tags as SynopsisTags) || {};
-      const mappedPlot: PlotPoint = {
-        id: updatedNote.id,
-        act: (tagsData.act as PlotPoint['act']) || 1,
-        title: updatedNote.title,
-        description: updatedNote.content || '',
-        type: (tagsData.type as PlotPoint['type']) || 'setup',
-        characters: Array.isArray(tagsData.characters) ? tagsData.characters : [],
-        location: tagsData.location || '',
-        notes: tagsData.notes || '',
-        order: tagsData.order || 0,
-        duration: tagsData.duration || 0,
-        importance: (tagsData.importance as PlotPoint['importance']) || 'medium',
-        createdAt: updatedNote.createdAt,
-        updatedAt: updatedNote.updatedAt
-      };
+      const mappedPlot = projectNoteToPlotPoint(updatedNote);
 
       Logger.info('SYNOPSIS_SERVICE', '플롯 포인트 업데이트 완료', { id });
       return createSuccess(mappedPlot);

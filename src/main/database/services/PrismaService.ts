@@ -20,7 +20,7 @@ type TransactionClient = Omit<PrismaClientType, '$connect' | '$disconnect' | '$o
  * 매번 새로운 연결을 생성하지 않고 하나의 인스턴스를 재사용하여 성능 개선
  */
 
-class PrismaService {
+export class PrismaService {
   private static instance: PrismaService;
   private client: PrismaClientType | null = null;
   private isConnecting = false;

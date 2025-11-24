@@ -1,6 +1,6 @@
 // 🔥 기가차드 테스트 설정 - 완벽한 테스트 환경 구성
 
-import '@testing-library/jest-dom';
+require('@testing-library/jest-dom');
 
 // 🔧 Electron 모킹
 Object.defineProperty(global, 'process', {
@@ -43,7 +43,7 @@ const mockIpcRenderer = {
 jest.mock('electron', () => ({
   app: {
     getVersion: jest.fn(() => '1.0.0'),
-    getPath: jest.fn((name: string) => `/mock/path/${name}`),
+    getPath: jest.fn((name) => `/mock/path/${name}`),
     quit: jest.fn(),
     whenReady: jest.fn(() => Promise.resolve()),
     on: jest.fn(),
@@ -106,7 +106,7 @@ jest.mock('uiohook-napi', () => ({
     on: jest.fn(),
     removeAllListeners: jest.fn()
   }
-}));
+}), { virtual: true });
 
 // 🔧 파일 시스템 모킹
 jest.mock('fs', () => ({
@@ -127,23 +127,16 @@ jest.mock('fs', () => ({
 // 🔧 path 모킹
 jest.mock('path', () => ({
   ...jest.requireActual('path'),
-  join: jest.fn((...args: string[]) => args.join('/')),
-  resolve: jest.fn((...args: string[]) => '/' + args.join('/'))
+  join: jest.fn((...args) => args.join('/')),
+  resolve: jest.fn((...args) => '/' + args.join('/'))
 }));
 
 // 🔧 글로벌 테스트 유틸리티
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeValidSettingsSchema(): R;
-      toBeValidIpcChannel(): R;
-    }
-  }
-}
+// (Type declarations for Jest matchers live in test/globals.d.ts)
 
 // 🔧 커스텀 매처
 expect.extend({
-  toBeValidSettingsSchema(received: unknown) {
+  toBeValidSettingsSchema(received) {
     const isValid = received && typeof received === 'object' && !Array.isArray(received);
     
     if (isValid) {
@@ -159,7 +152,7 @@ expect.extend({
     }
   },
   
-  toBeValidIpcChannel(received: string) {
+  toBeValidIpcChannel(received) {
     const channelPattern = /^[a-z]+:[a-z-]+$/;
     const isValid = typeof received === 'string' && channelPattern.test(received);
     

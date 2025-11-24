@@ -8,7 +8,7 @@ import type { Prisma, PrismaClient, ProjectStructure as PrismaStructureModel } f
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Logger } from '../../shared/logger';
 import { IpcResponse, ProjectStructure } from '../../shared/types';
-import type { StructureStatus } from '../../shared/constants/enums';
+import { isValidStructureStatus } from '../../shared/constants/enums';
 import { calculateWordCount } from '../../shared/utils/text';
 import { prismaService } from '../database/services/PrismaService';
 import { databaseMutex } from '../database/services/DatabaseMutexService';  // 🔒 동시성 제어
@@ -37,33 +37,20 @@ export function registerStructureHandlers(): void {
       });
 
       // Prisma 결과를 ProjectStructure 타입으로 변환
-      const convertedStructure: ProjectStructure[] = structure.map((item: {
-        id: string;
-        projectId: string;
-        type: string;
-        title: string;
-        description: string | null;
-        content: string | null;
-        status: StructureStatus;
-        wordCount: number;
-        sortOrder: number;
-        parentId: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      }) => ({
+      const convertedStructure: ProjectStructure[] = structure.map((item: PrismaStructureModel) => ({
         id: item.id,
         projectId: item.projectId,
-        type: item.type as 'chapter' | 'synopsis' | 'idea' | 'act' | 'section',
+        type: item.type,
         title: item.title,
-        description: item.description || undefined,
-        content: item.content || undefined,
-        status: item.status || undefined,
-        wordCount: item.wordCount || 0,
-        sortOrder: item.sortOrder || 0,
-        parentId: item.parentId || undefined,
-        depth: 0, // 기본값으로 설정 (스키마에 없는 필드)
-        color: undefined, // 기본값으로 설정 (스키마에 없는 필드)
-        isActive: true, // 기본값으로 설정 (스키마에 없는 필드)
+        description: item.description ?? undefined,
+        content: item.content ?? undefined,
+        status: isValidStructureStatus(item.status) ? item.status : 'draft',
+        wordCount: item.wordCount ?? 0,
+        sortOrder: item.sortOrder ?? 0,
+        parentId: item.parentId ?? undefined,
+        depth: item.depth ?? 0,
+        color: item.color ?? '#6b7280',
+        isActive: item.isActive ?? true,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       }));
@@ -241,7 +228,7 @@ function mapToProjectStructure(model: PrismaStructureModel): ProjectStructure {
     title: model.title,
     description: toOptionalString(model.description),
     content: toOptionalString(model.content),
-    status: (model.status as StructureStatus) || 'draft',
+    status: isValidStructureStatus(model.status) ? model.status : 'draft',
     wordCount: model.wordCount ?? 0,
     sortOrder: model.sortOrder ?? 0,
     parentId: toOptionalString(model.parentId),

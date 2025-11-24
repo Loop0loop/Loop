@@ -3,14 +3,62 @@
 // MIGRATION: MIGRATED FROM projectIpcHandlers.ts:19-556
 // MIGRATION: TODO verify Prisma disconnect, error handling, 'new' ID edge case
 
+import type { ProjectStructure as PrismaProjectStructure } from '@prisma/client';
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { Logger } from '../../../shared/logger';
-import { IpcResponse, Project } from '../../../shared/types';
-import type { KoreanWebNovelGenre, ProjectStatus } from '../../../shared/constants/enums';
+import { IpcResponse, Project, ProjectStructure } from '../../../shared/types';
+import {
+  isValidGenre,
+  isValidProjectStatus,
+  isValidStructureStatus,
+  type KoreanWebNovelGenre,
+  type ProjectStatus,
+  type StructureStatus,
+} from '../../../shared/constants/enums';
 import { prismaService } from '../services/PrismaService';
 import { ProjectCreateSchema, ProjectUpdateSchema, detectSuspiciousInput } from '../../../shared/validation/projectValidation';
 import { globalRateLimiter, channelLimiters } from '../../services/RateLimiterService';
 import { databaseMutex } from '../services/DatabaseMutexService';  // 🔒 동시성 제어
+
+const normalizeGenre = (value?: string | null): KoreanWebNovelGenre => {
+  if (typeof value === 'string' && isValidGenre(value)) {
+    return value;
+  }
+
+  return 'unknown';
+};
+
+const normalizeStatus = (value?: string | null): ProjectStatus => {
+  if (typeof value === 'string' && isValidProjectStatus(value)) {
+    return value;
+  }
+
+  return 'active';
+};
+
+const normalizeStructureStatus = (value: string): StructureStatus =>
+  isValidStructureStatus(value) ? value : 'draft';
+
+const toProjectStructure = (structure: PrismaProjectStructure): ProjectStructure => ({
+  id: structure.id,
+  projectId: structure.projectId,
+  type: structure.type,
+  title: structure.title,
+  description: structure.description ?? undefined,
+  content: structure.content ?? undefined,
+  status: normalizeStructureStatus(structure.status),
+  wordCount: structure.wordCount ?? 0,
+  sortOrder: structure.sortOrder ?? 0,
+  parentId: structure.parentId ?? undefined,
+  depth: structure.depth ?? 0,
+  color: structure.color ?? '#6b7280',
+  isActive: structure.isActive ?? true,
+  createdAt: structure.createdAt,
+  updatedAt: structure.updatedAt,
+});
+
+const mapProjectStructures = (structures?: PrismaProjectStructure[]): ProjectStructure[] =>
+  (structures ?? []).map(toProjectStructure);
 
 /**
  * 🔥 프로젝트 CRUD IPC 핸들러 - 성능 최적화
@@ -48,31 +96,9 @@ export function registerProjectCrudHandlers(): void {
               updatedAt: true
             }
           },
-          characters: {
-            select: { 
-              id: true, 
-              name: true, 
-              role: true, 
-              description: true 
-            }
-          },
-          structure: {
-            select: { 
-              id: true, 
-              type: true, 
-              content: true,
-              title: true,
-              status: true
-            }
-          },
-          notes: {
-            select: { 
-              id: true, 
-              title: true, 
-              type: true, 
-              content: true 
-            }
-          },
+          characters: true,
+          structure: true,
+          notes: true,
           writerStats: true,
           publications: true
         },
@@ -80,23 +106,23 @@ export function registerProjectCrudHandlers(): void {
       });
 
       // Prisma 결과를 Project 타입으로 변환
-      const convertedProjects: Project[] = projects.map((project: any) => ({
+      const convertedProjects: Project[] = projects.map((project) => ({
         id: project.id,
         title: project.title,
         description: project.description || '',
         content: project.content || '',
+        chapters: project.chapters ?? undefined,
         progress: project.progress || 0,
         wordCount: project.wordCount || 0,
         lastModified: project.lastModified,
         createdAt: project.createdAt,
-        updatedAt: project.lastModified, // 🔥 updatedAt 필드 추가
-        genre: project.genre || 'unknown',
-        status: project.status || 'active',
+        updatedAt: project.lastModified,
+        genre: normalizeGenre(project.genre),
+        status: normalizeStatus(project.status),
         author: project.author || '사용자',
-        // 🔥 include된 관련 데이터 포함 (상세 정보 필요)
-        characters: project.characters || [],
-        structure: project.structures || [],
-        notes: project.notes || [],
+        characters: project.characters ?? [],
+        structure: mapProjectStructures(project.structure),
+        notes: project.notes ?? [],
       }));
 
       Logger.info('PROJECT_CRUD_IPC', `✅ 조회된 프로젝트 수: ${convertedProjects.length}`);
@@ -142,31 +168,9 @@ export function registerProjectCrudHandlers(): void {
               updatedAt: true
             }
           },
-          characters: {
-            select: { 
-              id: true, 
-              name: true, 
-              role: true, 
-              description: true 
-            }
-          },
-          structure: {
-            select: { 
-              id: true, 
-              type: true, 
-              content: true,
-              title: true,
-              status: true
-            }
-          },
-          notes: {
-            select: { 
-              id: true, 
-              title: true, 
-              type: true, 
-              content: true 
-            }
-          },
+          characters: true,
+          structure: true,
+          notes: true,
           writerStats: true,
           publications: true
         }
@@ -219,19 +223,18 @@ export function registerProjectCrudHandlers(): void {
         title: project.title,
         description: project.description || '',
         content: project.content || '',
-        chapters: (project as any).chapters || undefined, // 🔥 chapters 필드 추가
+        chapters: project.chapters ?? undefined,
         progress: project.progress || 0,
         wordCount: project.wordCount || 0,
         lastModified: project.lastModified,
         createdAt: project.createdAt,
-        updatedAt: project.lastModified, // 🔥 lastModified를 updatedAt으로 사용
-        genre: project.genre || 'unknown',
-        status: project.status || 'active',
+        updatedAt: project.lastModified,
+        genre: normalizeGenre(project.genre),
+        status: normalizeStatus(project.status),
         author: project.author || '사용자',
-        // 🔥 include된 관련 데이터 포함 (상세 정보)
-        characters: project.characters || [],
-        structure: project.structures || [],
-        notes: project.notes || [],
+        characters: project.characters ?? [],
+        structure: mapProjectStructures(project.structure),
+        notes: project.notes ?? [],
       };
 
       return {
@@ -288,8 +291,8 @@ export function registerProjectCrudHandlers(): void {
         // 🔒 의심스러운 입력 패턴 감지
         if (detectSuspiciousInput(JSON.stringify(project))) {
           Logger.warn('PROJECT_CRUD_IPC', '⚠️ Suspicious input pattern detected', {
-            title: (project as any).title,
-            genre: (project as any).genre
+            title: project.title,
+            genre: project.genre
           });
         }
         
@@ -483,15 +486,15 @@ export function registerProjectCrudHandlers(): void {
         title: updatedProject.title,
         description: updatedProject.description || '',
         content: updatedProject.content || '',
-        chapters: (updatedProject as any).chapters || undefined, // 🔥 chapters 필드 추가 (타입 캐스팅)
+        chapters: updatedProject.chapters ?? undefined,
         progress: updatedProject.progress || 0,
         wordCount: updatedProject.wordCount || 0,
-        genre: updatedProject.genre || 'unknown',
-        status: updatedProject.status || 'active',
+        genre: normalizeGenre(updatedProject.genre),
+        status: normalizeStatus(updatedProject.status),
         author: updatedProject.author || '사용자',
         createdAt: updatedProject.createdAt,
         lastModified: updatedProject.lastModified,
-        updatedAt: updatedProject.lastModified, // 🔥 lastModified를 updatedAt으로 사용
+        updatedAt: updatedProject.lastModified,
       };
 
       Logger.info('PROJECT_CRUD_IPC', '✅ 프로젝트 업데이트 완료', {
