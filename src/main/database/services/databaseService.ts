@@ -109,18 +109,40 @@ export class DatabaseService {
 
       const { PrismaClient } = PrismaPkg;
 
+      // Prisma 7 SQLite: Must use better-sqlite3 adapter for Electron
+      let adapter: any = null;
+      try {
+        if (!databaseUrl) {
+          throw new Error('DATABASE_URL resolved to empty or undefined');
+        }
+
+        const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+
+        // For Prisma 7 adapter, pass the connection config (must include url).
+        // The adapter will create the underlying better-sqlite3 client itself so we
+        // must not pass a raw Database instance here (that caused url to be undefined
+        // inside the adapter factory).
+        adapter = new PrismaBetterSqlite3({ url: databaseUrl });
+        Logger.debug('DATABASE', 'better-sqlite3 adapter loaded successfully', { dbPath, databaseUrl });
+      } catch (adapterErr) {
+        Logger.error('DATABASE', 'Failed to load better-sqlite3 adapter', adapterErr);
+        return createError(
+          'better-sqlite3 adapter required for Prisma 7 SQLite. ' +
+          'Run: pnpm install @prisma/adapter-better-sqlite3 better-sqlite3'
+        );
+      }
+
+      // Create Prisma client with adapter
       this.prisma = new PrismaClient({
-        datasources: {
-          db: {
-            url: this.config.databaseUrl,
-          },
-        },
+        adapter,
         log: this.config.enableLogging ? ['query', 'info', 'warn', 'error'] : [],
-      }) as any as PrismaClient;      // 데이터베이스 연결
+      }) as any as PrismaClient;
+      
+      // 데이터베이스 연결
       await this.prisma.$connect();
       this.isConnected = true;
 
-      Logger.info('DATABASE', 'Database initialized successfully', {
+      Logger.info('DATABASE', 'Database initialized successfully with better-sqlite3 adapter', {
         url: this.config.databaseUrl,
         logging: this.config.enableLogging,
       });

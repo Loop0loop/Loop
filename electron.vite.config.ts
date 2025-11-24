@@ -93,13 +93,15 @@ export default defineConfig(({ mode }) => {
       plugins: [externalizeDepsPlugin()],
       build: {
         rollupOptions: {
-          // 외부 의존성 최적화
+          // 외부 의존성 최적화 - Prisma 7 SQLite adapter는 네이티브
           external: [
             'electron',
             'electron-updater',
             'ttf2woff2',
             '@prisma/client',
-            '.prisma/client'
+            '.prisma/client',
+            '@prisma/adapter-better-sqlite3',
+            'better-sqlite3'
           ]
         }
       },

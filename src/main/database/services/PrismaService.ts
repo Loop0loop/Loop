@@ -96,17 +96,28 @@ class PrismaService {
 
       const { PrismaClient } = PrismaPkg;
 
+      // Prisma 7 SQLite: Must use better-sqlite3 adapter for Electron
+      // The adapter is required because Prisma's Rust engine is not available
+      let adapter: any = null;
+      try {
+        const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+        adapter = new PrismaBetterSqlite3({ url: databaseUrl });
+        Logger.debug('PRISMA_SERVICE', 'better-sqlite3 adapter loaded successfully', { dbPath });
+      } catch (adapterErr) {
+        Logger.error('PRISMA_SERVICE', 'Failed to load better-sqlite3 adapter', adapterErr);
+        throw new Error(
+          'better-sqlite3 adapter required for Prisma 7 SQLite in Electron. ' +
+          'Run: pnpm install @prisma/adapter-better-sqlite3 better-sqlite3'
+        );
+      }
+
+      // Create Prisma client with adapter
       this.client = new PrismaClient({
-        datasources: {
-          db: {
-            url: databaseUrl,
-          },
-        },
+        adapter,
         log: ['error', 'warn'],
       });
 
-      // Prisma v6에서는 lazy connection - 첫 쿼리에서 자동 연결
-      Logger.info('PRISMA_SERVICE', '✅ Prisma client created successfully');
+      Logger.info('PRISMA_SERVICE', '✅ Prisma client created successfully with better-sqlite3 adapter');
 
       return this.client;
     } catch (error) {
