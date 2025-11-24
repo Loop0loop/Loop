@@ -6,30 +6,70 @@
 
 import { Logger } from '../../../shared/logger';
 
-export type PrismaClientType = any;
+import { ensureDatabaseUrl } from '../../utils/prismaPaths';
 
-let clientInstance: PrismaClientType | null = null;
+// Use `import type` for runtime-free typings so code uses dynamic require at runtime
+import type { PrismaClient } from '@prisma/client';
 
-export async function getPrismaClient(): Promise<PrismaClientType> {
+let clientInstance: PrismaClient | null = null;
+let isConnecting = false;
+
+/**
+ * Returns the singleton Prisma client. Lazy-initializes and connects.
+ * This function is safe to call multiple times — it will reuse the existing
+ * instance when possible.
+ */
+export async function getPrismaClient(): Promise<PrismaClient> {
   if (clientInstance) return clientInstance;
 
+  // If another call is already initializing, wait until it's done
+  if (isConnecting) {
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    if (clientInstance) return clientInstance;
+  }
+
   try {
-    // lazy-load to reduce cold-start & packaging surprises
+    isConnecting = true;
+
+    // Ensure env DATABASE_URL and engine path are configured for Prisma runtime
+    const { databaseUrl } = await ensureDatabaseUrl();
+
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { PrismaClient } = require('@prisma/client');
+    const { PrismaClient: PrismaCtor } = require('@prisma/client');
 
-    clientInstance = new PrismaClient();
+    // Create typed instance but keep require dynamic to avoid packaging surprises
+    clientInstance = new (PrismaCtor as unknown as { new (opts?: unknown): PrismaClient })({
+      datasources: {
+        db: { url: databaseUrl },
+      },
+      // enable basic runtime logging in development
+      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    });
 
-    Logger.info('PRISMA_CLIENT', 'Prisma client lazy-initialized (scaffold)');
+    // Connect eagerly so subsequent queries are predictable
+    await clientInstance.$connect();
+
+    Logger.info('PRISMA_CLIENT', 'Prisma client initialized and connected', { databaseUrl });
     return clientInstance;
   } catch (error) {
-    Logger.error('PRISMA_CLIENT', 'Failed to initialize Prisma client', error);
+    Logger.error('PRISMA_CLIENT', 'Prisma client initialization failed', error);
+    clientInstance = null;
     throw error;
+  } finally {
+    isConnecting = false;
   }
 }
 
-export function resetPrismaClient() {
-  clientInstance = null;
+export async function disconnectPrismaClient(): Promise<void> {
+  if (!clientInstance) return;
+  try {
+    await clientInstance.$disconnect();
+    Logger.info('PRISMA_CLIENT', 'Prisma client disconnected');
+  } catch (error) {
+    Logger.warn('PRISMA_CLIENT', 'Failed to disconnect Prisma client', error);
+  } finally {
+    clientInstance = null;
+  }
 }
 
-export default { getPrismaClient, resetPrismaClient };
+export default { getPrismaClient, disconnectPrismaClient };
