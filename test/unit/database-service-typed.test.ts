@@ -1,10 +1,10 @@
-jest.mock('../../../src/main/services/databaseService', () => ({
-  initialize: jest.fn().mockResolvedValue({ success: true, data: true }),
-  disconnect: jest.fn().mockResolvedValue({ success: true, data: true }),
-  saveTypingSession: jest.fn().mockResolvedValue({ success: true, data: 'sess_1' }),
-  getTypingSessions: jest.fn().mockResolvedValue({ success: true, data: [] }),
-  getTypingStats: jest.fn().mockResolvedValue({ success: true, data: { wpm: 0 } }),
-  getAnalyticsData: jest.fn().mockResolvedValue({ success: true, data: { generatedAt: new Date().toISOString() } }),
+vi.mock('../../../src/main/services/databaseService', () => ({
+  initialize: vi.fn().mockResolvedValue({ success: true, data: true }),
+  disconnect: vi.fn().mockResolvedValue({ success: true, data: true }),
+  saveTypingSession: vi.fn().mockResolvedValue({ success: true, data: 'sess_1' }),
+  getTypingSessions: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  getTypingStats: vi.fn().mockResolvedValue({ success: true, data: { wpm: 0 } }),
+  getAnalyticsData: vi.fn().mockResolvedValue({ success: true, data: { generatedAt: new Date().toISOString() } }),
 }));
 
 import service from '../../../src/main/database/services/service';

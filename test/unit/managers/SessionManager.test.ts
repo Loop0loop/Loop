@@ -4,12 +4,12 @@ import { SessionManager, SessionState } from '../../../src/main/managers/Session
 import { Logger } from '../../../src/shared/logger';
 
 // Mock Logger
-jest.mock('../../../src/shared/logger', () => ({
+vi.mock('../../../src/shared/logger', () => ({
   Logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
@@ -17,7 +17,7 @@ describe('🔥 SessionManager 단위 테스트', () => {
   let sessionManager: SessionManager;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     sessionManager = new SessionManager();
     await sessionManager.initialize();
     await sessionManager.start();

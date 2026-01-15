@@ -4,12 +4,12 @@ import { BaseManager, ManagerConfig, ManagerState } from '../../../src/main/comm
 import { Logger } from '../../../src/shared/logger';
 
 // Mock Logger
-jest.mock('../../../src/shared/logger', () => ({
+vi.mock('../../../src/shared/logger', () => ({
   Logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
@@ -40,7 +40,7 @@ describe('BaseManager', () => {
   let manager: TestManager;
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     manager = new TestManager({
       name: 'TestManager',
       autoStart: false,

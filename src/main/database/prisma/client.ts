@@ -34,7 +34,7 @@ export async function getPrismaClient(): Promise<PrismaClient> {
     // Ensure env DATABASE_URL and engine path are configured for Prisma runtime
     const { databaseUrl } = await ensureDatabaseUrl();
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { PrismaClient: PrismaCtor } = require('@prisma/client');
 
     // Create typed instance but keep require dynamic to avoid packaging surprises

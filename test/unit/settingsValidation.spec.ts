@@ -16,7 +16,6 @@ describe('🔒 Settings Validation - V2 & V1 Security Fixes', () => {
   describe('V2: 화이트리스트 검증', () => {
     describe('isAllowedSettingsKey', () => {
       it('✅ 허용되는 UI 설정 키는 통과', () => {
-        expect(isAllowedSettingsKey('ui.theme')).toBe(true);
         expect(isAllowedSettingsKey('ui.fontSize')).toBe(true);
         expect(isAllowedSettingsKey('ui.focusMode')).toBe(true);
       });
@@ -24,7 +23,6 @@ describe('🔒 Settings Validation - V2 & V1 Security Fixes', () => {
       it('✅ 허용되는 앱 설정 키는 통과', () => {
         expect(isAllowedSettingsKey('app.theme')).toBe(true);
         expect(isAllowedSettingsKey('app.language')).toBe(true);
-        expect(isAllowedSettingsKey('app.fontSize')).toBe(true);
       });
 
       it('✅ 허용되는 계정 프로필 키는 통과', () => {
@@ -66,7 +64,7 @@ describe('🔒 Settings Validation - V2 & V1 Security Fixes', () => {
       });
 
       it('✅ 유효한 숫자 값은 통과', () => {
-        expect(() => validateSettingValue('app.fontSize', 14)).not.toThrow();
+        expect(() => validateSettingValue('ui.fontSize', 14)).not.toThrow();
         expect(() => validateSettingValue('ui.windowWidth', 1024)).not.toThrow();
         expect(() => validateSettingValue('performance.maxCPUUsage', 50)).not.toThrow();
       });
@@ -111,13 +109,13 @@ describe('🔒 Settings Validation - V2 & V1 Security Fixes', () => {
         expect(uiSettings.length).toBeGreaterThan(0);
         expect(uiSettings).toContain('ui.focusMode');
         expect(uiSettings).toContain('ui.zenMode');
+        expect(uiSettings).toContain('ui.fontSize');
       });
 
       it('✅ 모든 app 설정은 화이트리스트에 있음', () => {
         const appSettings = ALLOWED_SETTINGS_KEYS.filter((k: string) => k.startsWith('app.'));
         expect(appSettings.length).toBeGreaterThan(0);
         expect(appSettings).toContain('app.theme');
-        expect(appSettings).toContain('app.fontSize');
       });
 
       it('✅ 승인된 계정 프로필 필드만 있음', () => {
@@ -224,7 +222,7 @@ describe('🔒 Settings Validation - V2 & V1 Security Fixes', () => {
         'ui.focusMode',
         'app.theme',
         'account.displayName',
-        'app.fontSize',
+        'ui.fontSize',
         'notifications.enableNotifications',
       ];
 

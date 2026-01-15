@@ -3,14 +3,14 @@
 import { Platform } from '../../../src/main/utils/platform';
 
 // Process platform mock
-const mockPlatform = jest.fn(() => 'darwin');
+const mockPlatform = vi.fn(() => 'darwin');
 Object.defineProperty(process, 'platform', {
   get: mockPlatform
 });
 
 describe('🔥 Platform 유틸리티 단위 테스트', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockPlatform.mockReturnValue('darwin'); // 기본값
   });
 

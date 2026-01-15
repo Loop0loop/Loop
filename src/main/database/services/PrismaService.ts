@@ -106,7 +106,7 @@ export class PrismaService {
 
       // Create Prisma client via factory
       // The created client may be a runtime object and we cast to the type used across the app
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       this.client = createPrismaClient(adapter) as unknown as PrismaClientType;
 
       Logger.info('PRISMA_SERVICE', '✅ Prisma client created successfully with better-sqlite3 adapter');

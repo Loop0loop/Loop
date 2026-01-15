@@ -133,7 +133,7 @@ export class ApplicationBootstrapper {
           // Dynamic import may still fail in some packaging scenarios -> fallback
           try {
             // fallback to require (synchronous). If this fails, we catch below.
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
+             
             const { EnvironmentService } = require('../services/EnvironmentService');
             void EnvironmentService.initialize();
             Logger.debug('BOOTSTRAPPER', '⏱️ EnvironmentService early initialization started (fallback require)');

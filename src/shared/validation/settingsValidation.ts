@@ -31,12 +31,12 @@ export const ALLOWED_SETTINGS_KEYS = [
   'ui.minimalistMode',
   'ui.compactMode',
   'ui.showShortcutHelp',
+  'ui.fontSize',
+  'ui.fontFamily',
 
   // ✅ 앱 설정
   'app.theme',
   'app.language',
-  'app.fontSize',
-  'app.fontFamily',
   'app.autoSave',
   'app.startMinimized',
   'app.minimizeToTray',
@@ -103,6 +103,8 @@ export const SETTINGS_VALUE_SCHEMAS: Record<AllowedSettingsKey, z.ZodType> = {
   'ui.minimalistMode': z.boolean(),
   'ui.compactMode': z.boolean(),
   'ui.showShortcutHelp': z.boolean(),
+  'ui.fontSize': z.number().min(10).max(48),
+  'ui.fontFamily': z.string().min(1).max(256),
 
   // 앱 설정
   'app.theme': z.enum([
@@ -120,8 +122,6 @@ export const SETTINGS_VALUE_SCHEMAS: Record<AllowedSettingsKey, z.ZodType> = {
     'high-contrast',
   ]),
   'app.language': z.string().min(2).max(10),
-  'app.fontSize': z.number().min(10).max(48),
-  'app.fontFamily': z.string().min(1).max(256),
   'app.autoSave': z.boolean(),
   'app.startMinimized': z.boolean(),
   'app.minimizeToTray': z.boolean(),

@@ -158,9 +158,6 @@ importers:
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
-      vitest:
-        specifier: ^3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.25)(jiti@1.21.7)(jsdom@26.1.0)(tsx@4.20.6)
       zod:
         specifier: ^4.1.13
         version: 4.1.13
@@ -288,6 +285,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.25)(jiti@1.21.7)(jsdom@26.1.0)(tsx@4.20.6)
 
 packages:
 

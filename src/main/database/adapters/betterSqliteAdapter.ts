@@ -14,7 +14,7 @@ export async function loadBetterSqliteAdapter(databaseUrl: string) {
     // load adapter runtime dynamically (CommonJS require keeps bundlers out)
     // keep the require inside function to avoid top-level load-time errors
     // when adapter is not installed in certain environments.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 
     if (!PrismaBetterSqlite3) {

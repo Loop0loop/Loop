@@ -6,7 +6,7 @@ import { Logger } from '../../shared/logger';
 
 export function createPrismaClient(adapter?: unknown) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const PrismaPkg = require('@prisma/client');
     const { PrismaClient } = PrismaPkg;
 

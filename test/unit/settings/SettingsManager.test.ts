@@ -7,17 +7,17 @@ import { Logger } from '../../../src/shared/logger';
 import type { SettingsSchema, SettingsResult } from '../../../src/main/settings/types';
 
 // Mock dependencies
-jest.mock('../../../src/main/settings/storage/FileStorage');
-jest.mock('../../../src/shared/logger', () => ({
+vi.mock('../../../src/main/settings/storage/FileStorage');
+vi.mock('../../../src/shared/logger', () => ({
   Logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
-const MockedFileStorage = FileStorage as jest.MockedClass<typeof FileStorage>;
+const MockedFileStorage = FileStorage as vi.MockedClass<typeof FileStorage>;
 
 // 🔥 타입 안전한 테스트 헬퍼 함수
 function createValidSettings(): SettingsSchema {
@@ -219,17 +219,17 @@ function createValidSettings(): SettingsSchema {
 
 describe('🔥 SettingsManager 단위 테스트', () => {
   let settingsManager: SettingsManager;
-  let mockStorage: jest.Mocked<FileStorage>;
+  let mockStorage: vi.Mocked<FileStorage>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Create mock storage instance
     mockStorage = {
-      load: jest.fn(),
-      save: jest.fn(),
-      backup: jest.fn(),
-      restore: jest.fn(),
+      load: vi.fn(),
+      save: vi.fn(),
+      backup: vi.fn(),
+      restore: vi.fn(),
     } as any;
 
     MockedFileStorage.mockImplementation(() => mockStorage);
@@ -397,7 +397,7 @@ describe('🔥 SettingsManager 단위 테스트', () => {
     });
 
     it('should watch for setting changes', async () => {
-      const mockCallback = jest.fn();
+      const mockCallback = vi.fn();
       
       const unwatch = settingsManager.watch('ui', mockCallback);
       expect(typeof unwatch).toBe('function');

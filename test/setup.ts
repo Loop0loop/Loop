@@ -1,6 +1,7 @@
 // 🔥 기가차드 테스트 설정 - 완벽한 테스트 환경 구성
 
-require('@testing-library/jest-dom');
+import '@testing-library/jest-dom';
+import { vi, expect, beforeEach, afterEach } from 'vitest';
 
 // 🔧 Electron 모킹
 Object.defineProperty(global, 'process', {
@@ -15,121 +16,127 @@ Object.defineProperty(global, 'process', {
 });
 
 // 🔧 Logger 모킹 (테스트 중 로그 출력 방지)
-jest.mock('../src/shared/logger', () => ({
+vi.mock('../src/shared/logger', () => ({
   Logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    log: jest.fn()
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn()
   }
 }));
 
 // 🔧 Electron IPC 모킹
 const mockIpcMain = {
-  handle: jest.fn(),
-  removeAllListeners: jest.fn(),
-  on: jest.fn(),
-  removeListener: jest.fn()
+  handle: vi.fn(),
+  removeAllListeners: vi.fn(),
+  on: vi.fn(),
+  removeListener: vi.fn()
 };
 
 const mockIpcRenderer = {
-  invoke: jest.fn(),
-  on: jest.fn(),
-  removeAllListeners: jest.fn(),
-  removeListener: jest.fn()
+  invoke: vi.fn(),
+  on: vi.fn(),
+  removeAllListeners: vi.fn(),
+  removeListener: vi.fn()
 };
 
-jest.mock('electron', () => ({
+vi.mock('electron', () => ({
   app: {
-    getVersion: jest.fn(() => '1.0.0'),
-    getPath: jest.fn((name) => `/mock/path/${name}`),
-    quit: jest.fn(),
-    whenReady: jest.fn(() => Promise.resolve()),
-    on: jest.fn(),
-    setAsDefaultProtocolClient: jest.fn()
+    getVersion: vi.fn(() => '1.0.0'),
+    getPath: vi.fn((name) => `/mock/path/${name}`),
+    quit: vi.fn(),
+    whenReady: vi.fn(() => Promise.resolve()),
+    on: vi.fn(),
+    setAsDefaultProtocolClient: vi.fn()
   },
-  BrowserWindow: jest.fn().mockImplementation(() => ({
-    loadURL: jest.fn(),
-    loadFile: jest.fn(),
-    on: jest.fn(),
+  BrowserWindow: vi.fn().mockImplementation(() => ({
+    loadURL: vi.fn(),
+    loadFile: vi.fn(),
+    on: vi.fn(),
     webContents: {
-      send: jest.fn(),
-      on: jest.fn()
+      send: vi.fn(),
+      on: vi.fn()
     },
-    show: jest.fn(),
-    hide: jest.fn(),
-    minimize: jest.fn(),
-    maximize: jest.fn(),
-    close: jest.fn(),
-    destroy: jest.fn(),
-    isDestroyed: jest.fn(() => false)
+    show: vi.fn(),
+    hide: vi.fn(),
+    minimize: vi.fn(),
+    maximize: vi.fn(),
+    close: vi.fn(),
+    destroy: vi.fn(),
+    isDestroyed: vi.fn(() => false)
   })),
   ipcMain: mockIpcMain,
   ipcRenderer: mockIpcRenderer,
   contextBridge: {
-    exposeInMainWorld: jest.fn()
+    exposeInMainWorld: vi.fn()
   },
   Menu: {
-    setApplicationMenu: jest.fn(),
-    buildFromTemplate: jest.fn()
+    setApplicationMenu: vi.fn(),
+    buildFromTemplate: vi.fn()
   },
-  Tray: jest.fn().mockImplementation(() => ({
-    setToolTip: jest.fn(),
-    setContextMenu: jest.fn(),
-    destroy: jest.fn(),
-    isDestroyed: jest.fn(() => false)
+  Tray: vi.fn().mockImplementation(() => ({
+    setToolTip: vi.fn(),
+    setContextMenu: vi.fn(),
+    destroy: vi.fn(),
+    isDestroyed: vi.fn(() => false)
   })),
   globalShortcut: {
-    register: jest.fn(),
-    unregister: jest.fn(),
-    unregisterAll: jest.fn()
+    register: vi.fn(),
+    unregister: vi.fn(),
+    unregisterAll: vi.fn()
   },
   clipboard: {
-    readText: jest.fn(() => 'mock clipboard text'),
-    writeText: jest.fn()
+    readText: vi.fn(() => 'mock clipboard text'),
+    writeText: vi.fn()
   },
   powerMonitor: {
-    on: jest.fn(),
-    removeAllListeners: jest.fn()
+    on: vi.fn(),
+    removeAllListeners: vi.fn()
   }
 }));
 
 // 🔧 uiohook-napi 모킹
-jest.mock('uiohook-napi', () => ({
+vi.mock('uiohook-napi', () => ({
   UiohookKey: {},
   UiohookMouseButton: {},
   UiohookWheelDirection: {},
   uIOhook: {
-    start: jest.fn(() => Promise.resolve()),
-    stop: jest.fn(() => Promise.resolve()),
-    on: jest.fn(),
-    removeAllListeners: jest.fn()
+    start: vi.fn(() => Promise.resolve()),
+    stop: vi.fn(() => Promise.resolve()),
+    on: vi.fn(),
+    removeAllListeners: vi.fn()
   }
-}), { virtual: true });
+}));
 
 // 🔧 파일 시스템 모킹
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  existsSync: jest.fn(),
-  readFileSync: jest.fn(),
-  writeFileSync: jest.fn(),
-  mkdirSync: jest.fn(),
-  promises: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    mkdir: jest.fn(),
-    access: jest.fn(),
-    stat: jest.fn()
-  }
-}));
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('fs')>();
+  return {
+    ...actual,
+    existsSync: vi.fn(),
+    readFileSync: vi.fn(),
+    writeFileSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    promises: {
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      mkdir: vi.fn(),
+      access: vi.fn(),
+      stat: vi.fn()
+    }
+  };
+});
 
 // 🔧 path 모킹
-jest.mock('path', () => ({
-  ...jest.requireActual('path'),
-  join: jest.fn((...args) => args.join('/')),
-  resolve: jest.fn((...args) => '/' + args.join('/'))
-}));
+vi.mock('path', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('path')>();
+  return {
+    ...actual,
+    join: vi.fn((...args) => args.join('/')),
+    resolve: vi.fn((...args) => '/' + args.join('/'))
+  };
+});
 
 // 🔧 글로벌 테스트 유틸리티
 // (Type declarations for Jest matchers live in test/globals.d.ts)
@@ -138,7 +145,7 @@ jest.mock('path', () => ({
 expect.extend({
   toBeValidSettingsSchema(received) {
     const isValid = received && typeof received === 'object' && !Array.isArray(received);
-    
+
     if (isValid) {
       return {
         message: () => `expected ${received} not to be a valid settings schema`,
@@ -151,11 +158,11 @@ expect.extend({
       };
     }
   },
-  
+
   toBeValidIpcChannel(received) {
     const channelPattern = /^[a-z]+:[a-z-]+$/;
     const isValid = typeof received === 'string' && channelPattern.test(received);
-    
+
     if (isValid) {
       return {
         message: () => `expected ${received} not to be a valid IPC channel`,
@@ -172,12 +179,9 @@ expect.extend({
 
 // 🔧 테스트 전역 설정
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
-
-// 🔧 테스트 타임아웃 경고 방지
-jest.setTimeout(5000);

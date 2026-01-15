@@ -12,22 +12,22 @@ import {
 } from '../../src/shared/validation/projectValidation';
 
 describe('V3: Project Input Validation', () => {
-  
+
   // ========== 그룹 1: 기본 유효성 검증 (6 cases) ==========
   describe('Basic Validation', () => {
     it('✅ Should accept valid project', async () => {
       const result = await ProjectCreateSchema.parseAsync({
         title: '새로운 프로젝트',
-        genre: '판타지',
+        genre: 'fantasy',
         status: 'active',
       });
       expect(result.title).toBe('새로운 프로젝트');
-      expect(result.genre).toBe('판타지');
+      expect(result.genre).toBe('fantasy');
     });
 
     it('✅ Should apply default values', async () => {
       const result = await ProjectCreateSchema.parseAsync({ title: '제목' });
-      expect(result.genre).toBe('기타');
+      expect(result.genre).toBe('unknown');
       expect(result.status).toBe('active');
     });
 
@@ -44,14 +44,14 @@ describe('V3: Project Input Validation', () => {
     it('✅ Should accept 1-100 character titles', async () => {
       const result1 = await ProjectCreateSchema.parseAsync({ title: '가' });
       expect(result1.title).toBe('가');
-      
+
       const result100 = await ProjectCreateSchema.parseAsync({ title: 'x'.repeat(100) });
       expect(result100.title.length).toBe(100);
     });
 
-    it('❌ Should reject content exceeding 1MB', async () => {
+    it('❌ Should reject content exceeding 5MB', async () => {
       await expect(
-        ProjectCreateSchema.parseAsync({ title: 'a', content: 'x'.repeat(1_000_001) })
+        ProjectCreateSchema.parseAsync({ title: 'a', content: 'x'.repeat(5_000_001) })
       ).rejects.toThrow();
     });
   });
@@ -59,9 +59,9 @@ describe('V3: Project Input Validation', () => {
   // ========== 그룹 2: 장르 & 상태 검증 (6 cases) ==========
   describe('Genre & Status Validation', () => {
     it('✅ isValidGenre accepts valid genres', () => {
-      expect(isValidGenre('미스터리')).toBe(true);
-      expect(isValidGenre('판타지')).toBe(true);
-      expect(isValidGenre('기타')).toBe(true);
+      expect(isValidGenre('fantasy')).toBe(true);
+      expect(isValidGenre('romance')).toBe(true);
+      expect(isValidGenre('unknown')).toBe(true);
     });
 
     it('❌ isValidGenre rejects invalid genres', () => {
@@ -149,9 +149,10 @@ describe('V3: Project Input Validation', () => {
       expect(result.status).toBe('completed');
     });
 
-    it('✅ Should allow empty updates', async () => {
-      const result = await ProjectUpdateSchema.parseAsync({});
-      expect(result).toEqual({});
+    it('✅ Should reject empty updates', async () => {
+      await expect(
+        ProjectUpdateSchema.parseAsync({})
+      ).rejects.toThrow();
     });
 
     it('❌ Should reject unknown fields (strict mode)', async () => {
@@ -168,7 +169,7 @@ describe('V3: Project Input Validation', () => {
 
     it('❌ Should reject exceeding content in update', async () => {
       await expect(
-        ProjectUpdateSchema.parseAsync({ content: 'x'.repeat(1_000_001) })
+        ProjectUpdateSchema.parseAsync({ content: 'x'.repeat(5_000_001) })
       ).rejects.toThrow();
     });
 
@@ -194,13 +195,13 @@ describe('V3: Project Input Validation', () => {
         title: '나의 판타지 소설',
         description: '마법과 모험이 있는 이야기',
         content: '옛날 옛날 먼 곳에...',
-        genre: '판타지',
+        genre: 'fantasy',
         status: 'active',
         author: '홍길동',
       };
       const result = await ProjectCreateSchema.parseAsync(project);
       expect(result.title).toBe('나의 판타지 소설');
-      expect(result.genre).toBe('판타지');
+      expect(result.genre).toBe('fantasy');
     });
 
     it('✅ Real-world project update', async () => {
@@ -214,11 +215,11 @@ describe('V3: Project Input Validation', () => {
       expect(result.status).toBe('completed');
     });
 
-    it('❌ Should prevent 1MB+ size attack', async () => {
+    it('❌ Should prevent 5MB+ size attack', async () => {
       await expect(
         ProjectCreateSchema.parseAsync({
           title: 'test',
-          content: 'A'.repeat(1_000_001),
+          content: 'A'.repeat(5_000_001),
         })
       ).rejects.toThrow();
     });

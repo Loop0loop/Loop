@@ -3,7 +3,7 @@ description: Root index for AI operation protocols
 applyTo: '**'
 ---
 
-# 🛠 AI Instructions Index
+# Instructions Index
 
 This file acts as the **entry point** for all AI behavioral instructions.  
 Each module below defines a **self-contained rule set**. Think of it like `index.js` that imports/export all configs.
