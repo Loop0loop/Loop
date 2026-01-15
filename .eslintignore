@@ -1,5 +1,8 @@
 # 🔥 기가차드 ESLint 무시 파일들
 
+# GitHub metadata and instructions
+.github/
+
 # Build outputs
 dist/
 out/
